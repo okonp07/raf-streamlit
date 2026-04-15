@@ -85,7 +85,15 @@ with col2:
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    I am a Data Scientist with a background in Civil Engineering, combining analytical thinking and technical skills to solve real-world problems with data. I work with Python and focus on machine learning, predictive modeling, and data analysis, delivering clear and actionable insights that support data-driven decisions and sustainable solutions.
+    I am a Data Scientist with a background in Civil Engineering, combining analytical thinking and technical skills to solve real-world problems with data.
+
+    My core focus areas include machine learning, predictive modeling, quantitative analysis, and data-driven decision support. I work primarily with Python across the full analytics lifecycle — from data wrangling and feature engineering to model development and deployment.
+
+    My work spans financial modeling, regime detection, time-series forecasting, risk analytics, and infrastructure data analysis. I bring a structured, engineering-first approach to every problem, ensuring that solutions are not only statistically sound but practically useful.
+
+    Currently, I work as a Data Scientist at PSP Analytics and hold a degree in Financial Engineering from WorldQuant University, where I deepened my expertise in quantitative methods and portfolio theory.
+
+    *I believe: good data tells a story, good models listen, and good decisions follow.*
     """)
 
 st.divider()
