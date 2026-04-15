@@ -21,25 +21,23 @@ POPULAR_TICKERS = {
     "Indices": ["^GSPC", "^DJI", "^IXIC", "^RUT", "^FTSE", "^N225"],
 }
 
-ALL_TICKERS = []
-for tickers in POPULAR_TICKERS.values():
-    ALL_TICKERS.extend(tickers)
-
 with st.form("fetch"):
     col1, col2 = st.columns(2)
     with col1:
-        # Category filter
-        category = st.selectbox("Asset Category", ["All"] + list(POPULAR_TICKERS.keys()))
-        if category == "All":
-            options = ALL_TICKERS
-        else:
-            options = POPULAR_TICKERS[category]
+        # Category filter — selecting a category narrows the ticker list
+        category = st.selectbox("Asset Category", list(POPULAR_TICKERS.keys()))
+        options = POPULAR_TICKERS[category]
 
-        # Searchable selectbox with custom entry
+        # Ticker selection: pick from category list or type a custom ticker
         saved_ticker = st.session_state.get("ticker", "SPY")
-        custom = st.text_input("Or type any ticker / name", value="", placeholder="e.g. NFLX, BTC-USD, ^GSPC")
-        preset = st.selectbox("Select from list", options, index=options.index(saved_ticker) if saved_ticker in options else 0)
-        ticker = custom.strip().upper() if custom.strip() else preset
+        default_idx = options.index(saved_ticker) if saved_ticker in options else 0
+        ticker = st.selectbox(
+            "Ticker", options, index=default_idx,
+            help="Select from the list above, or switch category. To use a ticker not listed, type it below.",
+        )
+        custom = st.text_input("Or type any ticker", value="", placeholder="e.g. NFLX, BTC-USD, ^GSPC")
+        if custom.strip():
+            ticker = custom.strip().upper()
 
         start_date = st.text_input("Start Date", value=st.session_state.get("start_date", "2018-01-01"))
     with col2:
