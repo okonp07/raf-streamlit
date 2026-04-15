@@ -45,6 +45,11 @@ def apply_theme():
             .stSelectbox, .stMultiSelect, .stNumberInput, .stTextInput {{  }}
             [data-baseweb="select"] {{ background-color: rgba(30, 30, 50, 0.9); color: #fafafa; }}
             [data-baseweb="input"] {{ background-color: rgba(30, 30, 50, 0.9); color: #fafafa; }}
+            /* JSON viewer fix for dark mode */
+            [data-testid="stJson"], [data-testid="stJson"] * {{ background-color: rgba(14, 17, 23, 0.9) !important; color: #56b4e9 !important; }}
+            pre {{ background-color: rgba(14, 17, 23, 0.9) !important; color: #fafafa !important; }}
+            code {{ color: #56b4e9 !important; }}
+            .stJson {{ background-color: rgba(14, 17, 23, 0.9) !important; }}
             /* Theme toggle: dark at rest, light on hover */
             .stButton > button {{ background-color: #1a1a2e; color: #fafafa; border: 1px solid #333; }}
             .stButton > button:hover {{ background-color: #fafafa; color: #1a1a2e; border: 1px solid #fafafa; }}
