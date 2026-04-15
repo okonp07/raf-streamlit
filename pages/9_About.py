@@ -54,16 +54,20 @@ with col1:
     st.markdown("""
     <div style="text-align:center;">
         <h3>Okon Prince</h3>
+        <p style="font-size:0.9rem;opacity:0.8;margin-top:-8px;">AI Engineer & Data Scientist | Senior Data Scientist at MIVA Open University</p>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    Okon Prince is a Data Scientist and Machine Learning Engineer with expertise
-    in quantitative finance, statistical modelling, and production ML systems.
-    He specialises in building end-to-end pipelines that translate complex
-    analytical methods into practical, deployable tools. His work spans regime
-    detection, time-series forecasting, and risk analytics. He is passionate
-    about making advanced quantitative techniques accessible to a wider audience.
+    I design and deploy end-to-end data systems that turn raw data into production-ready intelligence.
+
+    My core stack includes Python, Streamlit, BigQuery, Supabase, Hugging Face, PySpark, SQL, Machine Learning, LLMs, and Transformers.
+
+    My work spans risk scoring systems, A/B testing, Traditional and AI-powered dashboards, RAG pipelines, predictive analytics, LLM-based solutions and AI research.
+
+    Currently, I work as a Senior Data Scientist in the department of Research and Development at MIVA Open University, where I carry out AI / ML Research and build intelligent systems that drive analytics, decision support and scalable AI innovation.
+
+    *I believe: models are trained, systems are engineered and impact is delivered.*
     """)
 
 with col2:
@@ -76,16 +80,12 @@ with col2:
     st.markdown("""
     <div style="text-align:center;">
         <h3>Hart Ofigwe</h3>
+        <p style="font-size:0.9rem;opacity:0.8;margin-top:-8px;">Data Scientist | Machine Learning Engineer | Quant | Civil Engineer<br>PSP Analytics · WorldQuant University</p>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    Hart Ofigwe is a finance professional and quantitative analyst with deep
-    domain knowledge in market microstructure, portfolio management, and
-    financial risk. He designed the analytical framework behind this application,
-    defining the feature set, validation methodology, and interpretation logic
-    that drive the regime detection engine. His focus is on bridging the gap
-    between academic research and real-world investment decision-making.
+    I am a Data Scientist with a background in Civil Engineering, combining analytical thinking and technical skills to solve real-world problems with data. I work with Python and focus on machine learning, predictive modeling, and data analysis, delivering clear and actionable insights that support data-driven decisions and sustainable solutions.
     """)
 
 st.divider()
