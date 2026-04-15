@@ -59,15 +59,12 @@ with col1:
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    I design and deploy end-to-end data systems that turn raw data into production-ready intelligence.
-
-    My core stack includes Python, Streamlit, BigQuery, Supabase, Hugging Face, PySpark, SQL, Machine Learning, LLMs, and Transformers.
-
-    My work spans risk scoring systems, A/B testing, Traditional and AI-powered dashboards, RAG pipelines, predictive analytics, LLM-based solutions and AI research.
-
-    Currently, I work as a Senior Data Scientist in the department of Research and Development at MIVA Open University, where I carry out AI / ML Research and build intelligent systems that drive analytics, decision support and scalable AI innovation.
-
-    *I believe: models are trained, systems are engineered and impact is delivered.*
+    Okon Prince is a Data Scientist and Machine Learning Engineer with expertise
+    in quantitative finance, statistical modelling, and production ML systems.
+    He specialises in building end-to-end pipelines that translate complex
+    analytical methods into practical, deployable tools. His work spans regime
+    detection, time-series forecasting, and risk analytics. He is passionate
+    about making advanced quantitative techniques accessible to a wider audience.
     """)
 
 with col2:
@@ -85,15 +82,12 @@ with col2:
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    I am a Data Scientist with a background in Civil Engineering, combining analytical thinking and technical skills to solve real-world problems with data.
-
-    My core focus areas include machine learning, predictive modeling, quantitative analysis, and data-driven decision support. I work primarily with Python across the full analytics lifecycle — from data wrangling and feature engineering to model development and deployment.
-
-    My work spans financial modeling, regime detection, time-series forecasting, risk analytics, and infrastructure data analysis. I bring a structured, engineering-first approach to every problem, ensuring that solutions are not only statistically sound but practically useful.
-
-    Currently, I work as a Data Scientist at PSP Analytics and hold a degree in Financial Engineering from WorldQuant University, where I deepened my expertise in quantitative methods and portfolio theory.
-
-    *I believe: good data tells a story, good models listen, and good decisions follow.*
+    Hart Ofigwe is a finance professional and quantitative analyst with deep
+    domain knowledge in market microstructure, portfolio management, and
+    financial risk. He designed the analytical framework behind this application,
+    defining the feature set, validation methodology, and interpretation logic
+    that drive the regime detection engine. His focus is on bridging the gap
+    between academic research and real-world investment decision-making.
     """)
 
 st.divider()
