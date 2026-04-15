@@ -26,7 +26,7 @@ if Path(banner).exists():
     st.image(banner, use_container_width=True)
 
 with col_title:
-    st.markdown("### SPY Market Regime Detection & Walk-Forward Validation")
+    st.caption("SPY Market Regime Detection & Walk-Forward Validation")
 
 st.markdown("""
 ---
