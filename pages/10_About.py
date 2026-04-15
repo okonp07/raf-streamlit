@@ -54,7 +54,7 @@ with col1:
     st.markdown("""
     <div style="text-align:center;">
         <h3>Okon Prince</h3>
-        <p style="font-size:0.9rem;opacity:0.8;margin-top:-8px;">AI Engineer & Data Scientist | Senior Data Scientist at MIVA Open University</p>
+        <p style="font-size:0.9rem;opacity:0.8;margin-top:-8px;">AI Engineer & Data Scientist<br>Senior Data Scientist at MIVA Open University</p>
     </div>
     """, unsafe_allow_html=True)
 
