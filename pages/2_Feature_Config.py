@@ -1,7 +1,7 @@
 """Feature Configuration page."""
 
 import streamlit as st
-from components.theme import apply_theme
+from components.theme import apply_theme, render_footer
 
 apply_theme()
 
@@ -40,3 +40,5 @@ fc["rolling_skew"] = col3.checkbox("Skewness", value=fc.get("rolling_skew", True
 fc["rolling_kurtosis"] = col4.checkbox("Kurtosis", value=fc.get("rolling_kurtosis", True))
 
 st.session_state["feature_config"] = fc
+
+render_footer()

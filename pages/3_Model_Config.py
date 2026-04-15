@@ -1,7 +1,7 @@
 """Model Configuration page."""
 
 import streamlit as st
-from components.theme import apply_theme
+from components.theme import apply_theme, render_footer
 
 apply_theme()
 
@@ -27,3 +27,5 @@ mc["scaling"] = st.checkbox("Scale features (fit on train only)", value=mc.get("
 st.divider()
 st.json(mc)
 st.session_state["model_config"] = mc
+
+render_footer()

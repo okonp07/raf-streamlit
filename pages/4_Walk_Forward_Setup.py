@@ -1,7 +1,7 @@
 """Walk-Forward Setup page."""
 
 import streamlit as st
-from components.theme import apply_theme
+from components.theme import apply_theme, render_footer
 
 apply_theme()
 
@@ -32,3 +32,5 @@ if "raw_df" in st.session_state:
 st.divider()
 st.json(wf)
 st.session_state["wf_config"] = wf
+
+render_footer()

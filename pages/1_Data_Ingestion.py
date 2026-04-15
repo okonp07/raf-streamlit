@@ -1,7 +1,7 @@
 """Data Ingestion page."""
 
 import streamlit as st
-from components.theme import apply_theme
+from components.theme import apply_theme, render_footer
 from core.data import fetch_data
 
 apply_theme()
@@ -44,3 +44,5 @@ if "raw_df" in st.session_state:
         st.dataframe(df.head(10), use_container_width=True)
     with tab2:
         st.dataframe(df.tail(10), use_container_width=True)
+
+render_footer()

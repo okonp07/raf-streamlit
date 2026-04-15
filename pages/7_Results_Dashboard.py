@@ -2,7 +2,7 @@
 
 import streamlit as st
 import pandas as pd
-from components.theme import apply_theme
+from components.theme import apply_theme, render_footer
 from components.charts import (
     price_regime_chart, transition_heatmap, occupancy_bar,
     return_dist_chart, fold_timeline, drawdown_chart,
@@ -112,3 +112,5 @@ with tab_robustness:
         rows.append({"Regime": lbl, "Mean Return CV": stats["mean_return_cv"],
                      "Vol CV": stats["vol_cv"], "Folds Present": stats["n_folds_present"]})
     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+
+render_footer()

@@ -2,7 +2,7 @@
 
 import streamlit as st
 from pathlib import Path
-from components.theme import apply_theme
+from components.theme import apply_theme, render_footer
 
 st.set_page_config(page_title="Regime-Aware Forecasting", page_icon="📊", layout="wide")
 
@@ -97,3 +97,5 @@ col1, col2, col3 = st.columns(3)
 col1.info("**Default Ticker:** SPY")
 col2.info("**Default States:** 3")
 col3.info("**Validation:** Walk-Forward")
+
+render_footer()

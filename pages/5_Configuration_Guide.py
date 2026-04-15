@@ -2,7 +2,7 @@
 
 import streamlit as st
 from pathlib import Path
-from components.theme import apply_theme
+from components.theme import apply_theme, render_footer
 
 apply_theme()
 
@@ -14,3 +14,5 @@ if guide_path.exists():
     st.markdown(guide_path.read_text())
 else:
     st.error("Guide file (features.md) not found.")
+
+render_footer()

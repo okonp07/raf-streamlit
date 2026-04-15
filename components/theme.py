@@ -7,6 +7,19 @@ ACCENT_LIGHT = "#1a73e8"
 ACCENT_DARK = "#56b4e9"
 
 
+def render_footer():
+    """Render a consistent footer at the bottom of every page."""
+    st.markdown("""
+    <hr style="margin-top:3rem;margin-bottom:1rem;opacity:0.3;">
+    <div style="text-align:center;font-size:0.82rem;opacity:0.7;line-height:1.8;">
+        &copy; Okon Prince, 2026<br>
+        This project was designed by Hart Ofigwe and developed by Okon Prince and Hart Ofigwe.<br>
+        The authors are not liable for any loss that may arise from the use of this solution.<br>
+        Enquiries: <a href="mailto:okonp07@gmail.com">okonp07@gmail.com</a>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def apply_theme():
     """Inject CSS for the current theme. Call at the top of every page."""
     if "theme" not in st.session_state:

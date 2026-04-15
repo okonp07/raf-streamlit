@@ -1,7 +1,7 @@
 """Run Analysis page — executes everything in-process."""
 
 import streamlit as st
-from components.theme import apply_theme
+from components.theme import apply_theme, render_footer
 from core.features import engineer_features
 from core.walkforward import run_walkforward
 
@@ -47,3 +47,5 @@ if st.button("Run Analysis", type="primary", use_container_width=True):
 
     except Exception as e:
         st.error(f"Analysis failed: {e}")
+
+render_footer()

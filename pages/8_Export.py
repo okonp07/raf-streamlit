@@ -3,7 +3,7 @@
 import json
 import streamlit as st
 import pandas as pd
-from components.theme import apply_theme
+from components.theme import apply_theme, render_footer
 
 apply_theme()
 
@@ -80,3 +80,5 @@ report = "\n".join(lines)
 
 st.download_button("Download Report", report, "report.md", "text/markdown")
 st.markdown(report)
+
+render_footer()
