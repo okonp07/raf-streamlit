@@ -45,6 +45,9 @@ def apply_theme():
             .stSelectbox, .stMultiSelect, .stNumberInput, .stTextInput {{  }}
             [data-baseweb="select"] {{ background-color: rgba(30, 30, 50, 0.9); color: #fafafa; }}
             [data-baseweb="input"] {{ background-color: rgba(30, 30, 50, 0.9); color: #fafafa; }}
+            /* Theme toggle: dark at rest, light on hover */
+            .stButton > button {{ background-color: #1a1a2e; color: #fafafa; border: 1px solid #333; }}
+            .stButton > button:hover {{ background-color: #fafafa; color: #1a1a2e; border: 1px solid #fafafa; }}
         </style>
         """, unsafe_allow_html=True)
     else:
@@ -62,5 +65,8 @@ def apply_theme():
             [data-testid="stMetric"] {{ background-color: rgba(255, 255, 255, 0.75); padding: 12px; border-radius: 8px; }}
             [data-testid="stAlert"] {{ background-color: rgba(255, 255, 255, 0.85); }}
             .stDataFrame, [data-testid="stTable"] {{ background-color: rgba(255, 255, 255, 0.85); }}
+            /* Theme toggle: light at rest, dark on hover */
+            .stButton > button {{ background-color: #ffffff; color: #1a1a1a; border: 1px solid #ddd; }}
+            .stButton > button:hover {{ background-color: #1a1a2e; color: #fafafa; border: 1px solid #1a1a2e; }}
         </style>
         """, unsafe_allow_html=True)
