@@ -89,6 +89,122 @@ def fold_timeline(folds):
     return fig
 
 
+def regime_probability_chart(dates, probabilities, labels, states, alerts=None):
+    """Stacked area chart of regime probabilities over time with optional alert markers."""
+    fig = go.Figure()
+    probs = np.array(probabilities)
+    n_states = probs.shape[1]
+
+    for s in range(n_states):
+        label = labels.get(s, labels.get(str(s), f"State {s}"))
+        fig.add_trace(go.Scatter(
+            x=dates, y=probs[:, s], mode="lines", name=label,
+            line=dict(color=COLORS[s % len(COLORS)], width=1),
+            fill="tonexty" if s > 0 else "tozeroy",
+            stackgroup="probs",
+        ))
+
+    if alerts:
+        alert_dates = [a["date"] for a in alerts]
+        alert_y = [1.02] * len(alerts)
+        alert_text = [f"{a['severity']}: {a['current_regime']} ({a['confidence']:.0%}) → {a['alternative_regime']} ({a['alt_probability']:.0%})" for a in alerts]
+        fig.add_trace(go.Scatter(
+            x=alert_dates, y=alert_y, mode="markers", name="Transition Alert",
+            marker=dict(symbol="triangle-down", size=10, color="#e74c3c"),
+            text=alert_text, hoverinfo="text",
+        ))
+
+    fig.update_layout(
+        title="Regime Probabilities Over Time",
+        xaxis_title="Date", yaxis_title="Probability",
+        yaxis=dict(range=[0, 1.05]),
+        template=_template(), height=450,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02),
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+    return fig
+
+
+def current_regime_gauge(label, confidence, color_idx=0):
+    """Gauge chart showing current regime confidence."""
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=confidence * 100,
+        title={"text": f"Current: {label}"},
+        number={"suffix": "%"},
+        gauge={
+            "axis": {"range": [0, 100]},
+            "bar": {"color": COLORS[color_idx % len(COLORS)]},
+            "steps": [
+                {"range": [0, 40], "color": "rgba(231,76,60,0.2)"},
+                {"range": [40, 60], "color": "rgba(243,156,18,0.2)"},
+                {"range": [60, 100], "color": "rgba(46,204,113,0.2)"},
+            ],
+            "threshold": {
+                "line": {"color": "#e74c3c", "width": 3},
+                "thickness": 0.8,
+                "value": 60,
+            },
+        },
+    ))
+    fig.update_layout(template=_template(), height=280)
+    return fig
+
+
+def forward_projection_chart(projection_df, labels):
+    """Line chart of projected regime probabilities over N days."""
+    fig = go.Figure()
+    cols = [c for c in projection_df.columns if c != "day"]
+    for i, col in enumerate(cols):
+        fig.add_trace(go.Scatter(
+            x=projection_df["day"], y=projection_df[col],
+            mode="lines+markers", name=col,
+            line=dict(color=COLORS[i % len(COLORS)], width=2),
+            marker=dict(size=4),
+        ))
+    fig.update_layout(
+        title="Forward Regime Probability Projection",
+        xaxis_title="Days Ahead", yaxis_title="Probability",
+        yaxis=dict(range=[0, 1]),
+        template=_template(), height=400,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02),
+    )
+    return fig
+
+
+def price_with_probabilities(dates, close, probabilities, labels):
+    """Price chart with regime probability shading underneath."""
+    from plotly.subplots import make_subplots
+    import streamlit as st
+
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.6, 0.4],
+                        vertical_spacing=0.05)
+    line_color = "#aaaaaa" if st.session_state.get("theme") == "dark" else "#555555"
+    fig.add_trace(go.Scatter(x=dates, y=close, mode="lines", name="Close",
+                             line=dict(color=line_color, width=1.5)), row=1, col=1)
+
+    probs = np.array(probabilities)
+    n_states = probs.shape[1]
+    for s in range(n_states):
+        label = labels.get(s, labels.get(str(s), f"State {s}"))
+        fig.add_trace(go.Scatter(
+            x=dates, y=probs[:, s], mode="lines", name=label,
+            line=dict(color=COLORS[s % len(COLORS)], width=1),
+            fill="tonexty" if s > 0 else "tozeroy",
+            stackgroup="probs",
+        ), row=2, col=1)
+
+    fig.update_layout(
+        title="Price & Regime Probabilities",
+        template=_template(), height=650,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02),
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+    fig.update_yaxes(title_text="Price", row=1, col=1)
+    fig.update_yaxes(title_text="Probability", range=[0, 1], row=2, col=1)
+    return fig
+
+
 def drawdown_chart(dates, returns):
     r = np.array(returns)
     cum = np.cumsum(r)

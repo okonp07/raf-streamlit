@@ -89,9 +89,11 @@ Use the sidebar to navigate through the pages in order.
 | 2 | Feature Config | Select features for regime detection |
 | 3 | Model Config | Set HMM parameters |
 | 4 | Walk-Forward Setup | Configure validation engine |
-| 5 | Run Analysis | Execute the full pipeline |
-| 6 | Results Dashboard | Explore charts and regime assignments |
-| 7 | Export | Download reports and CSV files |
+| 5 | Configuration Guide | Detailed reference for all parameters |
+| 6 | Run Analysis | Execute the full pipeline |
+| 7 | Results Dashboard | Explore charts and regime assignments |
+| 8 | Export | Download reports and CSV files |
+| 9 | Regime Monitor | Live probabilities, transition alerts & forward projections |
 """)
 
 col1, col2, col3 = st.columns(3)

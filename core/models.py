@@ -24,6 +24,7 @@ def fit_hmm(
     bic = k * np.log(n) - 2 * ll
 
     return {
+        "model": model,
         "train_states": train_states,
         "test_states": test_states,
         "transmat": model.transmat_.tolist(),
