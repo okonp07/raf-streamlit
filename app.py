@@ -36,23 +36,13 @@ st.markdown("""
 
 Financial markets do not behave the same way all the time. Periods of steady growth give way to sudden crashes, which resolve into volatile recoveries before calm returns. These distinct behavioral phases — known as **market regimes** — are invisible in raw price data. They cannot be read off a chart. They must be inferred.
 
-Most investors and analysts either ignore regimes entirely or identify them only in hindsight. A portfolio manager who treats a high-volatility crash regime the same as a low-volatility bull market is misallocating risk, mispricing options, and making decisions based on assumptions that do not match reality.
-
-This app was built to make regime detection **accessible, rigorous, and validated**. It provides a complete workflow — from raw market data to statistically tested regime assignments — in a single tool that anyone can use without writing code.
-
----
-
-### The Problem It Solves
-
-Traditional market analysis assumes that markets behave consistently over time. Standard risk metrics like annualized volatility, Sharpe ratios, and correlation matrices are computed over long historical windows as if market conditions were stationary. They are not.
-
-**The consequences of ignoring regimes are real:**
+Traditional market analysis assumes that conditions are stationary. Standard risk metrics like annualized volatility, Sharpe ratios, and correlation matrices are computed over long historical windows as if the market behaves the same way throughout. It does not — and the consequences are real:
 
 - A portfolio optimized on 10 years of data allocates risk based on average conditions, not current conditions. When the market shifts from calm to crisis, the portfolio is wrong by construction.
 - A risk model that estimates Value-at-Risk from the full historical distribution understates tail risk during stress and overstates it during calm.
 - A trading strategy that works in trending markets may hemorrhage capital in volatile, mean-reverting markets — and vice versa.
 
-**This app solves the problem by:**
+Most investors and analysts either ignore regimes entirely or identify them only in hindsight. This app was built to change that — making regime detection **accessible, rigorous, and validated**. It provides a complete workflow from raw market data to statistically tested regime assignments, solving the problem by:
 
 1. **Detecting regimes automatically** using a Gaussian Hidden Markov Model — a probabilistic model that learns to identify distinct market states from observable features like volatility, momentum, and drawdown.
 2. **Validating the detection rigorously** using walk-forward testing — the same chronological backtesting standard used by institutional quant teams — so you know whether the regimes are real patterns or statistical artifacts.
@@ -78,7 +68,7 @@ Regime detection is a foundational concept in financial econometrics. This app p
 
 ---
 
-### What This App Does
+### How the Engine Works
 """)
 
 st.markdown("""
