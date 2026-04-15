@@ -1,6 +1,7 @@
 """Walk-Forward Setup page."""
 
 import streamlit as st
+from pathlib import Path
 from components.theme import apply_theme
 
 apply_theme()
@@ -32,3 +33,13 @@ if "raw_df" in st.session_state:
 st.divider()
 st.json(wf)
 st.session_state["wf_config"] = wf
+
+# --- Configuration Guide ---
+st.divider()
+
+guide_path = Path("features.md")
+if guide_path.exists():
+    with st.expander("Configuration & Features Guide", expanded=False):
+        st.markdown(guide_path.read_text())
+else:
+    st.caption("Configuration guide (features.md) not found.")
