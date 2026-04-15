@@ -21,20 +21,16 @@ POPULAR_TICKERS = {
     "Indices": ["^GSPC", "^DJI", "^IXIC", "^RUT", "^FTSE", "^N225"],
 }
 
+# Category selector — outside the form so it triggers an immediate rerun
+category = st.selectbox("Asset Category", list(POPULAR_TICKERS.keys()))
+options = POPULAR_TICKERS[category]
+
 with st.form("fetch"):
     col1, col2 = st.columns(2)
     with col1:
-        # Category filter — selecting a category narrows the ticker list
-        category = st.selectbox("Asset Category", list(POPULAR_TICKERS.keys()))
-        options = POPULAR_TICKERS[category]
-
-        # Ticker selection: pick from category list or type a custom ticker
         saved_ticker = st.session_state.get("ticker", "SPY")
         default_idx = options.index(saved_ticker) if saved_ticker in options else 0
-        ticker = st.selectbox(
-            "Ticker", options, index=default_idx,
-            help="Select from the list above, or switch category. To use a ticker not listed, type it below.",
-        )
+        ticker = st.selectbox("Ticker", options, index=default_idx)
         custom = st.text_input("Or type any ticker", value="", placeholder="e.g. NFLX, BTC-USD, ^GSPC")
         if custom.strip():
             ticker = custom.strip().upper()
