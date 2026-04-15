@@ -1,6 +1,6 @@
 # Regime-Aware Forecasting (RAF)
 
-A Streamlit application for detecting latent market regimes in SPY (S&P 500 ETF) using Gaussian Hidden Markov Models, validated through a rigorous walk-forward testing framework.
+A Streamlit application for detecting latent market regimes in any yfinance-listed asset (stocks, ETFs, indices, commodities, crypto, forex) using Gaussian Hidden Markov Models, validated through a rigorous walk-forward testing framework.
 
 ---
 
@@ -25,7 +25,7 @@ This app uses a **Gaussian Hidden Markov Model (HMM)** to identify these hidden 
 
 The app fetches historical OHLCV (Open, High, Low, Close, Volume) data from Yahoo Finance via the `yfinance` library. You can configure:
 
-- **Ticker symbol** (default: SPY)
+- **Ticker symbol** — browse by category or type any yfinance ticker (default: SPY)
 - **Date range** (default: 2018-01-01 to 2025-01-01)
 - **Interval** (daily, weekly, or monthly)
 
@@ -111,7 +111,7 @@ Since regime detection is unsupervised (no ground truth labels), the app evaluat
 
 Interactive Plotly charts include:
 
-- **Price with regime overlay** — SPY close price colored by detected regime
+- **Price with regime overlay** — Asset close price colored by detected regime
 - **Transition probability heatmap** — How likely each regime switch is
 - **State occupancy bar chart** — Time allocation across regimes
 - **Return distributions by regime** — Histograms showing regime-specific return profiles
@@ -119,7 +119,19 @@ Interactive Plotly charts include:
 - **Fold timeline** — Visual map of all train/test windows
 - **Per-fold detail** — Drill into any individual fold's statistics
 
-### 7. Export
+### 7. Regime Monitor
+
+Beyond historical analysis, the app includes a **live regime monitoring** page that:
+
+- **Trains on all available data** to give the best possible read on the current market state
+- **Shows regime probabilities** — not just the assigned regime, but the model's full probability distribution (e.g., 72% Bull, 23% Stress, 5% Recovery)
+- **Fires transition alerts** when the current regime's confidence drops below a threshold — an early warning that a regime change may be underway
+- **Projects forward** using the learned transition matrix to estimate regime probabilities N days ahead
+- **Displays gauge charts** for each regime's current probability at a glance
+
+This transforms the tool from backward-looking detection into forward-looking monitoring.
+
+### 8. Export
 
 Download results in multiple formats:
 
@@ -140,17 +152,22 @@ raf-streamlit/
 │   ├── 2_Feature_Config.py        # Toggle features on/off
 │   ├── 3_Model_Config.py          # HMM parameters
 │   ├── 4_Walk_Forward_Setup.py    # Validation engine settings
-│   ├── 5_Run_Analysis.py          # Execute the pipeline
-│   ├── 6_Results_Dashboard.py     # Charts, metrics, per-fold analysis
-│   └── 7_Export.py                # Download CSV, JSON, report
+│   ├── 5_Configuration_Guide.py   # Detailed reference for all parameters
+│   ├── 6_Run_Analysis.py          # Execute the full pipeline
+│   ├── 7_Results_Dashboard.py     # Charts, metrics, per-fold analysis
+│   ├── 8_Export.py                # Download reports and CSV files
+│   ├── 9_Regime_Monitor.py        # Live probabilities, alerts & projections
+│   └── 10_About.py               # Author profiles and project credits
 ├── core/
 │   ├── data.py                    # yfinance data fetching with caching
 │   ├── features.py                # Feature engineering pipeline
 │   ├── models.py                  # HMM fitting and regime interpretation
 │   ├── metrics.py                 # Evaluation metrics (occupancy, persistence, etc.)
+│   ├── monitor.py                 # Live regime monitoring and forward projection
 │   └── walkforward.py             # Walk-forward validation engine
 ├── components/
-│   └── charts.py                  # Plotly chart builders
+│   ├── charts.py                  # Plotly chart builders
+│   └── theme.py                   # Theme injection and footer
 ├── .streamlit/
 │   └── config.toml                # Streamlit theme configuration
 ├── requirements.txt               # Python dependencies
@@ -206,13 +223,14 @@ Open http://localhost:8501 in your browser.
 
 ### Customized Run
 
-1. **Data Ingestion** — Change ticker, date range, or interval
+1. **Data Ingestion** — Pick an asset category, select a ticker or type any symbol
 2. **Feature Config** — Disable features you don't want (e.g., turn off kurtosis)
 3. **Model Config** — Try 2 states instead of 3, or change covariance to "diag"
 4. **Walk-Forward Setup** — Use rolling instead of expanding, or change window sizes
 5. **Run Analysis** — Execute with your custom settings
 6. **Results Dashboard** — Compare regime characteristics
 7. **Export** — Save everything for your research
+8. **Regime Monitor** — Train on all data and monitor live regime probabilities, alerts, and projections
 
 ### Tips
 
@@ -258,6 +276,6 @@ All dependencies are free and open source.
 - Compare 2-state vs 3-state vs 4-state models on the same data
 - Test different feature subsets to see which drive regime separation
 - Try rolling vs expanding window modes
-- Apply to other tickers (QQQ, IWM, GLD, TLT)
+- Apply to different asset classes using the built-in category picker
 - Build regime-conditioned trading rules as a follow-up project
 - Add macro features (VIX, yield curve, credit spreads) for richer state characterization

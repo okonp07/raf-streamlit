@@ -94,6 +94,7 @@ Use the sidebar to navigate through the pages in order.
 | 7 | Results Dashboard | Explore charts and regime assignments |
 | 8 | Export | Download reports and CSV files |
 | 9 | Regime Monitor | Live probabilities, transition alerts & forward projections |
+| 10 | About | Author profiles and project credits |
 """)
 
 col1, col2, col3 = st.columns(3)
