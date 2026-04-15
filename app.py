@@ -18,27 +18,40 @@ with col_toggle:
 
 is_dark = st.session_state["theme"] == "dark"
 
+# Accent colors: blue (light mode), sky blue (dark mode)
+ACCENT_LIGHT = "#1a73e8"
+ACCENT_DARK = "#56b4e9"
+accent = ACCENT_DARK if is_dark else ACCENT_LIGHT
+
 # Inject theme CSS
 if is_dark:
-    st.markdown("""
+    st.markdown(f"""
     <style>
-        .stApp { background-color: #0e1117; color: #fafafa; }
-        [data-testid="stSidebar"] { background-color: #1a1a2e; }
-        [data-testid="stHeader"] { background-color: #0e1117; }
-        .stMarkdown, .stText, h1, h2, h3, p, span, label, .stMetricValue, .stMetricLabel {
+        .stApp {{ background-color: #0e1117; color: #fafafa; }}
+        [data-testid="stSidebar"] {{ background-color: #1a1a2e; }}
+        [data-testid="stHeader"] {{ background-color: #0e1117; }}
+        .stMarkdown, .stText, h1, h2, h3, p, span, label, .stMetricValue, .stMetricLabel {{
             color: #fafafa !important;
-        }
-        [data-testid="stMetricValue"] { color: #fafafa !important; }
-        .stDataFrame { color: #fafafa; }
-        div[data-testid="stExpander"] { border-color: #333; }
-        .stTabs [data-baseweb="tab"] { color: #fafafa; }
+        }}
+        [data-testid="stMetricValue"] {{ color: #fafafa !important; }}
+        .stDataFrame {{ color: #fafafa; }}
+        div[data-testid="stExpander"] {{ border-color: #333; }}
+        .stTabs [data-baseweb="tab"] {{ color: #fafafa; }}
+        .stButton > button[kind="primary"] {{ background-color: {accent}; border-color: {accent}; }}
+        .stButton > button[kind="primary"]:hover {{ background-color: #7ecbf0; border-color: #7ecbf0; }}
+        a {{ color: {accent} !important; }}
+        .stProgress > div > div {{ background-color: {accent}; }}
     </style>
     """, unsafe_allow_html=True)
 else:
-    st.markdown("""
+    st.markdown(f"""
     <style>
-        .stApp { background-color: #ffffff; color: #1a1a1a; }
-        [data-testid="stSidebar"] { background-color: #f5f5f5; }
+        .stApp {{ background-color: #ffffff; color: #1a1a1a; }}
+        [data-testid="stSidebar"] {{ background-color: #f5f5f5; }}
+        .stButton > button[kind="primary"] {{ background-color: {accent}; border-color: {accent}; }}
+        .stButton > button[kind="primary"]:hover {{ background-color: #1557b0; border-color: #1557b0; }}
+        a {{ color: {accent} !important; }}
+        .stProgress > div > div {{ background-color: {accent}; }}
     </style>
     """, unsafe_allow_html=True)
 
