@@ -1,8 +1,11 @@
 """Run Analysis page — executes everything in-process."""
 
 import streamlit as st
+from components.theme import apply_theme
 from core.features import engineer_features
 from core.walkforward import run_walkforward
+
+apply_theme()
 
 st.header("Run Analysis")
 

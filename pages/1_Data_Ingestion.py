@@ -1,7 +1,10 @@
 """Data Ingestion page."""
 
 import streamlit as st
+from components.theme import apply_theme
 from core.data import fetch_data
+
+apply_theme()
 
 st.header("Data Ingestion")
 st.markdown("Fetch SPY (or other ticker) OHLCV data from Yahoo Finance.")

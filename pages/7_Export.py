@@ -3,6 +3,9 @@
 import json
 import streamlit as st
 import pandas as pd
+from components.theme import apply_theme
+
+apply_theme()
 
 st.header("Export & Report")
 

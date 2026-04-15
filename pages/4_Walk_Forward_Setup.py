@@ -1,6 +1,9 @@
 """Walk-Forward Setup page."""
 
 import streamlit as st
+from components.theme import apply_theme
+
+apply_theme()
 
 st.header("Walk-Forward Setup")
 
