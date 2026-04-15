@@ -7,17 +7,45 @@ from core.data import fetch_data
 apply_theme()
 
 st.header("Data Ingestion")
-st.markdown("Fetch SPY (or other ticker) OHLCV data from Yahoo Finance.")
+st.markdown("Fetch historical OHLCV data from Yahoo Finance for any listed asset.")
+
+# Popular tickers organised by category
+POPULAR_TICKERS = {
+    "US Equities / ETFs": ["SPY", "QQQ", "IWM", "DIA", "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META", "JPM", "GS", "BAC"],
+    "International ETFs": ["EFA", "EEM", "VGK", "FXI", "EWJ", "EWZ"],
+    "Fixed Income": ["TLT", "IEF", "SHY", "HYG", "LQD", "BND", "AGG"],
+    "Commodities": ["GLD", "SLV", "USO", "GDX", "DBA", "DBC"],
+    "Crypto": ["BTC-USD", "ETH-USD", "SOL-USD", "BNB-USD", "ADA-USD", "XRP-USD"],
+    "Forex": ["EURUSD=X", "GBPUSD=X", "USDJPY=X", "AUDUSD=X", "USDCAD=X"],
+    "Volatility": ["^VIX"],
+    "Indices": ["^GSPC", "^DJI", "^IXIC", "^RUT", "^FTSE", "^N225"],
+}
+
+ALL_TICKERS = []
+for tickers in POPULAR_TICKERS.values():
+    ALL_TICKERS.extend(tickers)
 
 with st.form("fetch"):
     col1, col2 = st.columns(2)
     with col1:
-        ticker = st.text_input("Ticker", value=st.session_state.get("ticker", "SPY"))
+        # Category filter
+        category = st.selectbox("Asset Category", ["All"] + list(POPULAR_TICKERS.keys()))
+        if category == "All":
+            options = ALL_TICKERS
+        else:
+            options = POPULAR_TICKERS[category]
+
+        # Searchable selectbox with custom entry
+        saved_ticker = st.session_state.get("ticker", "SPY")
+        custom = st.text_input("Or type any ticker / name", value="", placeholder="e.g. NFLX, BTC-USD, ^GSPC")
+        preset = st.selectbox("Select from list", options, index=options.index(saved_ticker) if saved_ticker in options else 0)
+        ticker = custom.strip().upper() if custom.strip() else preset
+
         start_date = st.text_input("Start Date", value=st.session_state.get("start_date", "2018-01-01"))
     with col2:
         end_date = st.text_input("End Date", value=st.session_state.get("end_date", "2025-01-01"))
         interval = st.selectbox("Interval", ["1d", "1wk", "1mo"])
-    auto_adjust = st.checkbox("Auto-adjust prices", value=True)
+        auto_adjust = st.checkbox("Auto-adjust prices", value=True)
     submitted = st.form_submit_button("Fetch Data", type="primary")
 
 if submitted:

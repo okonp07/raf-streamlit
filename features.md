@@ -156,7 +156,7 @@ A model that fits historical data well may simply be memorizing patterns rather 
 
 ### 4.1 Starting Point
 
-For a first run with SPY daily data from 2018-2025:
+For a first run with daily data (e.g. SPY 2018-2025):
 
 - **Features**: Keep all defaults enabled
 - **Model**: 3 states, full covariance, scaling on

@@ -26,7 +26,8 @@ if Path(banner).exists():
     st.image(banner, use_container_width=True)
 
 with col_title:
-    st.caption("SPY Market Regime Detection & Walk-Forward Validation")
+    ticker = st.session_state.get("ticker", "SPY")
+    st.caption(f"{ticker} Market Regime Detection & Walk-Forward Validation")
 
 # --- Why this app exists ---
 st.markdown("""
@@ -72,7 +73,7 @@ Regime detection is a foundational concept in financial econometrics. This app p
 """)
 
 st.markdown("""
-1. **Data Ingestion** — Fetch SPY historical OHLCV data from Yahoo Finance
+1. **Data Ingestion** — Fetch historical OHLCV data from Yahoo Finance for any listed asset
 2. **Feature Engineering** — Compute 19 regime-relevant features (volatility, momentum, drawdown, RSI, MACD, and more)
 3. **Regime Detection** — Identify latent market regimes using a Gaussian Hidden Markov Model
 4. **Walk-Forward Validation** — Evaluate model robustness with chronological train/test splits — no data leakage
@@ -94,7 +95,7 @@ Use the sidebar to navigate through the pages in order.
 """)
 
 col1, col2, col3 = st.columns(3)
-col1.info("**Default Ticker:** SPY")
+col1.info(f"**Ticker:** {st.session_state.get('ticker', 'SPY')}")
 col2.info("**Default States:** 3")
 col3.info("**Validation:** Walk-Forward")
 
