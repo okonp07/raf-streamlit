@@ -50,7 +50,7 @@ with tab_overview:
     render_chart(price_regime_chart(
         result["all_test_dates"], result["test_close"],
         result["all_test_states"], labels
-    ), use_container_width=True)
+    ))
 
     col1, col2 = st.columns(2)
     with col1:
@@ -61,7 +61,7 @@ with tab_overview:
 
     render_chart(return_dist_chart(
         result["test_returns"], result["all_test_states"], labels
-    ), use_container_width=True)
+    ))
 
     col1, col2 = st.columns(2)
     with col1:
