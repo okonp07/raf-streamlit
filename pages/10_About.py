@@ -42,7 +42,7 @@ def initial_placeholder_html(initials: str, size: int = 160) -> str:
     """
 
 
-col1, col2 = st.columns(2)
+col1, spacer, col2 = st.columns([1, 0.15, 1])
 
 with col1:
     okon_img = circular_image_html("assets/prince-okon.png")
@@ -59,13 +59,15 @@ with col1:
     """, unsafe_allow_html=True)
 
     st.markdown("""
+    <p style="text-align:justify;">
     Okon Prince is a Data Scientist and Machine Learning Engineer with expertise
     in quantitative finance, statistical modelling, and production ML systems.
     He specialises in building end-to-end pipelines that translate complex
     analytical methods into practical, deployable tools. His work spans regime
     detection, time-series forecasting, and risk analytics. He is passionate
     about making advanced quantitative techniques accessible to a wider audience.
-    """)
+    </p>
+    """, unsafe_allow_html=True)
 
 with col2:
     hart_img = circular_image_html("assets/hart_cropped.jpeg")
@@ -82,13 +84,15 @@ with col2:
     """, unsafe_allow_html=True)
 
     st.markdown("""
+    <p style="text-align:justify;">
     Hart Ofigwe is a finance professional and quantitative analyst with deep
     domain knowledge in market microstructure, portfolio management, and
     financial risk. He designed the analytical framework behind this application,
     defining the feature set, validation methodology, and interpretation logic
     that drive the regime detection engine. His focus is on bridging the gap
     between academic research and real-world investment decision-making.
-    """)
+    </p>
+    """, unsafe_allow_html=True)
 
 st.divider()
 
