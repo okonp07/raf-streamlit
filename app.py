@@ -27,7 +27,7 @@ if Path(banner).exists():
 
 with col_title:
     ticker = st.session_state.get("ticker", "SPY")
-    st.caption(f"{ticker} Market Regime Detection & Walk-Forward Validation")
+    st.caption("Market Regime Detection & Walk-Forward Validation")
 
 # --- Why this app exists ---
 st.markdown("""
