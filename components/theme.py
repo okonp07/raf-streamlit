@@ -20,6 +20,20 @@ def render_footer():
     """, unsafe_allow_html=True)
 
 
+def render_toggle():
+    """Render a dark/light mode toggle button at the top-right of the page."""
+    if "theme" not in st.session_state:
+        st.session_state["theme"] = "light"
+    _, col_toggle = st.columns([5, 1])
+    with col_toggle:
+        theme_label = "🌙 Dark" if st.session_state["theme"] == "light" else "☀️ Light"
+        import inspect, os
+        caller = os.path.basename(inspect.stack()[1].filename)
+        if st.button(theme_label, use_container_width=True, key=f"toggle_{caller}"):
+            st.session_state["theme"] = "dark" if st.session_state["theme"] == "light" else "light"
+            st.rerun()
+
+
 def apply_theme():
     """Inject CSS for the current theme. Call at the top of every page."""
     if "theme" not in st.session_state:

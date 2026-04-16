@@ -3,8 +3,9 @@
 import base64
 import streamlit as st
 from pathlib import Path
-from components.theme import apply_theme, render_footer
+from components.theme import apply_theme, render_footer, render_toggle
 
+render_toggle()
 apply_theme()
 
 st.header("About")

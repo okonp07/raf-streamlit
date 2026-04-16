@@ -2,12 +2,13 @@
 
 import streamlit as st
 import pandas as pd
-from components.theme import apply_theme, render_footer
+from components.theme import apply_theme, render_footer, render_toggle
 from components.charts import (
     price_regime_chart, transition_heatmap, occupancy_bar,
     return_dist_chart, fold_timeline, drawdown_chart,
 )
 
+render_toggle()
 apply_theme()
 
 st.header("Results Dashboard")

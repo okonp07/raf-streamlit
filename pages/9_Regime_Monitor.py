@@ -3,13 +3,14 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from components.theme import apply_theme, render_footer
+from components.theme import apply_theme, render_footer, render_toggle
 from components.charts import (
     regime_probability_chart, current_regime_gauge,
     forward_projection_chart, price_with_probabilities,
 )
 from core.monitor import train_full_model, detect_alerts, project_forward
 
+render_toggle()
 apply_theme()
 
 st.header("Regime Monitor")

@@ -2,21 +2,11 @@
 
 import streamlit as st
 from pathlib import Path
-from components.theme import apply_theme, render_footer
+from components.theme import apply_theme, render_footer, render_toggle
 
 st.set_page_config(page_title="Regime-Aware Forecasting", page_icon="📊", layout="wide")
 
-# --- Theme toggle ---
-if "theme" not in st.session_state:
-    st.session_state["theme"] = "light"
-
-col_title, col_toggle = st.columns([5, 1])
-with col_toggle:
-    theme_label = "🌙 Dark" if st.session_state["theme"] == "light" else "☀️ Light"
-    if st.button(theme_label, use_container_width=True):
-        st.session_state["theme"] = "dark" if st.session_state["theme"] == "light" else "light"
-        st.rerun()
-
+render_toggle()
 apply_theme()
 
 # --- Hero banner ---
