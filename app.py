@@ -15,9 +15,7 @@ banner = "assets/dark.png" if is_dark else "assets/light.png"
 if Path(banner).exists():
     st.image(banner, use_container_width=True)
 
-with col_title:
-    ticker = st.session_state.get("ticker", "SPY")
-    st.caption("Market Regime Detection & Walk-Forward Validation")
+st.caption("Market Regime Detection & Walk-Forward Validation")
 
 # --- Why this app exists ---
 st.markdown("""
