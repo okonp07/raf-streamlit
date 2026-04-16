@@ -32,8 +32,8 @@ DRAWDOWN_COLOR = "#e76f51"
 DRAWDOWN_FILL  = "rgba(231, 111, 81, 0.15)"
 PRICE_LINE_DARK  = "#a8b2c1"
 PRICE_LINE_LIGHT = "#4a5568"
-GRID_DARK  = "rgba(255,255,255,0.06)"
-GRID_LIGHT = "rgba(0,0,0,0.06)"
+GRID_DARK  = "rgba(255,255,255,0.07)"
+GRID_LIGHT = "rgba(0,0,0,0.07)"
 ZERO_LINE_DARK  = "rgba(255,255,255,0.15)"
 ZERO_LINE_LIGHT = "rgba(0,0,0,0.12)"
 
@@ -142,6 +142,24 @@ def regime_color_alpha(state_idx, alpha=0.2):
     hex_c = REGIME_PALETTE[state_idx % len(REGIME_PALETTE)]
     r, g, b = int(hex_c[1:3], 16), int(hex_c[3:5], 16), int(hex_c[5:7], 16)
     return f"rgba({r},{g},{b},{alpha})"
+
+
+def render_chart(fig, key=None):
+    """Render a Plotly figure with clean modebar config."""
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        key=key,
+        config={
+            "displayModeBar": True,
+            "modeBarButtonsToRemove": [
+                "select2d", "lasso2d", "autoScale2d",
+                "hoverClosestCartesian", "hoverCompareCartesian",
+                "toggleSpikelines",
+            ],
+            "displaylogo": False,
+        },
+    )
 
 
 def styled_dataframe(df, hide_index=True):

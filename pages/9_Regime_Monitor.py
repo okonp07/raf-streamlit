@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from components.theme import apply_theme, render_footer, render_toggle
-from components.design import styled_dataframe
+from components.design import styled_dataframe, render_chart
 from components.charts import (
     regime_probability_chart, current_regime_gauge,
     forward_projection_chart, price_with_probabilities,
@@ -77,7 +77,7 @@ gauge_cols = st.columns(n_states)
 for i in range(n_states):
     label = labels.get(i, labels.get(str(i), f"State {i}"))
     with gauge_cols[i]:
-        st.plotly_chart(current_regime_gauge(label, current_probs[i], i), use_container_width=True)
+        render_chart(current_regime_gauge(label, current_probs[i], i))
 
 # Key metrics
 col1, col2, col3, col4 = st.columns(4)
@@ -95,10 +95,7 @@ tab_probs, tab_alerts, tab_projection, tab_price = st.tabs([
 
 with tab_probs:
     alerts = detect_alerts(probs, states, dates, labels, alert_threshold, lookback)
-    st.plotly_chart(
-        regime_probability_chart(dates, probs, labels, states, alerts),
-        use_container_width=True,
-    )
+    render_chart(regime_probability_chart(dates, probs, labels, states, alerts))
 
     # Show probability table for last N days
     st.subheader("Recent Regime Probabilities")
@@ -169,7 +166,7 @@ with tab_projection:
     )
 
     projection = project_forward(monitor["transmat"], current_probs, labels, projection_days)
-    st.plotly_chart(forward_projection_chart(projection, labels), use_container_width=True)
+    render_chart(forward_projection_chart(projection, labels))
 
     # Show convergence info
     final_probs = projection.iloc[-1]
@@ -207,9 +204,6 @@ with tab_projection:
         """)
 
 with tab_price:
-    st.plotly_chart(
-        price_with_probabilities(dates, close, probs, labels),
-        use_container_width=True,
-    )
+    render_chart(price_with_probabilities(dates, close, probs, labels))
 
 render_footer()

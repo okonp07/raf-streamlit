@@ -31,55 +31,54 @@ def price_regime_chart(dates, close, states, labels):
         return fig
 
     c = get_colors()
+    y_min, y_max = min(close), max(close)
+    y_pad = (y_max - y_min) * 0.03
 
-    # Base price line — subtle and elegant
+    # Add colored background bands for regime periods (grouped consecutive)
+    unique_states = sorted(set(states))
+    legend_shown = {s: False for s in unique_states}
+
+    i = 0
+    while i < len(states):
+        s = states[i]
+        j = i
+        while j < len(states) and states[j] == s:
+            j += 1
+        # Band from dates[i] to dates[j-1]
+        label = _label(labels, s)
+        color = regime_color(s)
+        fig.add_vrect(
+            x0=dates[i], x1=dates[j - 1],
+            fillcolor=regime_color_alpha(s, 0.12),
+            layer="below", line_width=0,
+        )
+        # Invisible trace for legend entry
+        if not legend_shown[s]:
+            fig.add_trace(go.Scatter(
+                x=[None], y=[None], mode="markers",
+                marker=dict(size=10, color=color, symbol="square"),
+                name=label, legendgroup=str(s),
+            ))
+            legend_shown[s] = True
+        i = j
+
+    # Base price line — clean and prominent
     fig.add_trace(go.Scatter(
         x=dates, y=close, mode="lines", name="Close",
-        line=dict(color=c["price_line"], width=1.5),
+        line=dict(color=c["price_line"], width=2),
+        showlegend=False,
         hovertemplate="<b>%{x}</b><br>Price: $%{y:,.2f}<extra></extra>",
     ))
 
-    # Regime colored segments as background bands (vertical spans)
-    # Group consecutive same-state periods for cleaner rendering
-    for s in sorted(set(states)):
-        label = _label(labels, s)
-        color = regime_color(s)
-        sd, sc = [], []
-        shown = False
-        for i, state_val in enumerate(states):
-            if state_val == s and i < len(close):
-                sd.append(dates[i])
-                sc.append(close[i])
-            else:
-                if sd:
-                    fig.add_trace(go.Scatter(
-                        x=sd, y=sc, mode="markers",
-                        marker=dict(color=color, size=5, opacity=0.8,
-                                    line=dict(width=0)),
-                        name=label, showlegend=not shown,
-                        legendgroup=str(s),
-                        hovertemplate=f"<b>{label}</b><br>%{{x}}<br>${{y:,.2f}}<extra></extra>",
-                    ))
-                    shown = True
-                    sd, sc = [], []
-        if sd:
-            fig.add_trace(go.Scatter(
-                x=sd, y=sc, mode="markers",
-                marker=dict(color=color, size=5, opacity=0.8,
-                            line=dict(width=0)),
-                name=label, showlegend=not shown,
-                legendgroup=str(s),
-                hovertemplate=f"<b>{label}</b><br>%{{x}}<br>${{y:,.2f}}<extra></extra>",
-            ))
-
     layout = base_layout(
         title="Price with Regime Overlay",
-        subtitle="Close price colored by detected market regime",
+        subtitle="Close price with colored regime bands",
         height=CHART_HEIGHT_MAIN,
     )
-    layout["yaxis"]["title_text"] = "Price"
-    layout["xaxis"]["title_text"] = "Date"
-    layout["hovermode"] = "closest"
+    layout["yaxis"]["title_text"] = "Price ($)"
+    layout["yaxis"]["range"] = [y_min - y_pad, y_max + y_pad]
+    layout["xaxis"]["title_text"] = ""
+    layout["hovermode"] = "x unified"
     fig.update_layout(**layout)
     return fig
 
@@ -204,40 +203,47 @@ def return_dist_chart(returns, states, labels):
 # ═══════════════════════════════════════════════════════════════════════════
 
 def fold_timeline(folds):
-    fig = go.Figure()
-    c = get_colors()
+    """Gantt-style fold timeline using horizontal bars for train/test periods."""
+    import pandas as pd
 
+    c = get_colors()
+    tasks = []
     for f in folds:
         fid = f["fold_id"]
-        # Train bar
-        fig.add_trace(go.Scatter(
-            x=[f["train_start"], f["train_end"]], y=[fid, fid],
-            mode="lines",
-            line=dict(color=TRAIN_COLOR, width=14),
-            name="Train" if fid == 0 else None,
-            showlegend=fid == 0,
-            legendgroup="train",
-            hovertemplate=f"<b>Fold {fid} — Train</b><br>{f['train_start']} → {f['train_end']}<extra></extra>",
-        ))
-        # Test bar
-        fig.add_trace(go.Scatter(
-            x=[f["test_start"], f["test_end"]], y=[fid, fid],
-            mode="lines",
-            line=dict(color=TEST_COLOR, width=14),
-            name="Test" if fid == 0 else None,
-            showlegend=fid == 0,
-            legendgroup="test",
-            hovertemplate=f"<b>Fold {fid} — Test</b><br>{f['test_start']} → {f['test_end']}<extra></extra>",
-        ))
+        tasks.append(dict(Fold=f"Fold {fid}", Start=f["train_start"], End=f["train_end"], Phase="Train"))
+        tasks.append(dict(Fold=f"Fold {fid}", Start=f["test_start"], End=f["test_end"], Phase="Test"))
 
+    fig = go.Figure()
+
+    # Render train then test so test overlaps visually
+    for phase, color, opacity in [("Train", TRAIN_COLOR, 0.75), ("Test", TEST_COLOR, 0.9)]:
+        phase_tasks = [t for t in tasks if t["Phase"] == phase]
+        for t in phase_tasks:
+            fid_num = int(t["Fold"].split()[-1])
+            fig.add_trace(go.Scatter(
+                x=[t["Start"], t["End"]], y=[fid_num, fid_num],
+                mode="lines",
+                line=dict(color=color, width=18),
+                opacity=opacity,
+                name=phase if fid_num == 0 else None,
+                showlegend=fid_num == 0,
+                legendgroup=phase,
+                hovertemplate=(
+                    f"<b>{t['Fold']} — {phase}</b><br>"
+                    f"{t['Start']} → {t['End']}<extra></extra>"
+                ),
+            ))
+
+    n = len(folds)
     layout = base_layout(
-        title="Fold Timeline",
-        subtitle="Walk-forward train/test windows across time",
-        height=max(CHART_HEIGHT_SMALL, len(folds) * 36 + 100),
+        title="Walk-Forward Fold Timeline",
+        subtitle=f"{n} folds — train (blue) and test (coral) windows",
+        height=max(280, n * 40 + 100),
     )
-    layout["xaxis"]["title_text"] = "Date"
-    layout["yaxis"]["title_text"] = "Fold"
+    layout["xaxis"]["title_text"] = ""
+    layout["yaxis"]["title_text"] = ""
     layout["yaxis"]["dtick"] = 1
+    layout["yaxis"]["tickprefix"] = "Fold "
     layout["hovermode"] = "closest"
     fig.update_layout(**layout)
     return fig

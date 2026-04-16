@@ -3,7 +3,7 @@
 import streamlit as st
 import pandas as pd
 from components.theme import apply_theme, render_footer, render_toggle
-from components.design import styled_dataframe, regime_color, REGIME_PALETTE, FONT_FAMILY
+from components.design import styled_dataframe, render_chart, regime_color, REGIME_PALETTE, FONT_FAMILY
 from components.charts import (
     price_regime_chart, transition_heatmap, occupancy_bar,
     return_dist_chart, fold_timeline, drawdown_chart,
@@ -47,7 +47,7 @@ st.markdown("")  # spacer
 tab_overview, tab_folds, tab_robustness = st.tabs(["Overview", "Per-Fold", "Robustness"])
 
 with tab_overview:
-    st.plotly_chart(price_regime_chart(
+    render_chart(price_regime_chart(
         result["all_test_dates"], result["test_close"],
         result["all_test_states"], labels
     ), use_container_width=True)
@@ -55,19 +55,19 @@ with tab_overview:
     col1, col2 = st.columns(2)
     with col1:
         last = result["folds"][-1]
-        st.plotly_chart(transition_heatmap(last["transition_matrix"], labels), use_container_width=True)
+        render_chart(transition_heatmap(last["transition_matrix"], labels))
     with col2:
-        st.plotly_chart(occupancy_bar(last["test_occupancy"], labels), use_container_width=True)
+        render_chart(occupancy_bar(last["test_occupancy"], labels))
 
-    st.plotly_chart(return_dist_chart(
+    render_chart(return_dist_chart(
         result["test_returns"], result["all_test_states"], labels
     ), use_container_width=True)
 
     col1, col2 = st.columns(2)
     with col1:
-        st.plotly_chart(drawdown_chart(result["all_test_dates"], result["test_returns"]), use_container_width=True)
+        render_chart(drawdown_chart(result["all_test_dates"], result["test_returns"]))
     with col2:
-        st.plotly_chart(fold_timeline(result["folds"]), use_container_width=True)
+        render_chart(fold_timeline(result["folds"]))
 
 with tab_folds:
     folds = result["folds"]
@@ -123,7 +123,7 @@ with tab_folds:
     styled_dataframe(pd.DataFrame(test_rows))
 
     st.markdown("")
-    st.plotly_chart(transition_heatmap(fold["transition_matrix"], fold["regime_labels"]), use_container_width=True)
+    render_chart(transition_heatmap(fold["transition_matrix"], fold["regime_labels"]))
 
     col1, col2, col3 = st.columns(3)
     col1.metric("Log-Likelihood", f"{fold.get('log_likelihood', 'N/A')}")
