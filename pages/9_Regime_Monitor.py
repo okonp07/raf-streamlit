@@ -4,6 +4,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from components.theme import apply_theme, render_footer, render_toggle
+from components.design import styled_dataframe
 from components.charts import (
     regime_probability_chart, current_regime_gauge,
     forward_projection_chart, price_with_probabilities,
@@ -109,7 +110,7 @@ with tab_probs:
             lbl = labels.get(s, labels.get(str(s), f"State {s}"))
             row[lbl] = f"{probs[i][s]:.1%}"
         recent_data.append(row)
-    st.dataframe(pd.DataFrame(recent_data), use_container_width=True, hide_index=True)
+    styled_dataframe(pd.DataFrame(recent_data))
 
 with tab_alerts:
     alerts = detect_alerts(probs, states, dates, labels, alert_threshold, lookback)
@@ -141,7 +142,7 @@ with tab_alerts:
         })
         alert_df["Confidence"] = alert_df["Confidence"].apply(lambda x: f"{x:.1%}")
         alert_df["Emerging Prob"] = alert_df["Emerging Prob"].apply(lambda x: f"{x:.1%}")
-        st.dataframe(alert_df, use_container_width=True, hide_index=True)
+        styled_dataframe(alert_df)
 
     # Explain the alerts
     with st.expander("How alerts work"):
@@ -187,8 +188,8 @@ with tab_projection:
     T = np.array(monitor["transmat"])
     tmat_labels = [labels.get(i, labels.get(str(i), f"State {i}")) for i in range(n_states)]
     tmat_df = pd.DataFrame(T, index=tmat_labels, columns=tmat_labels)
-    tmat_df = tmat_df.applymap(lambda x: f"{x:.3f}")
-    st.dataframe(tmat_df, use_container_width=True)
+    tmat_df = tmat_df.map(lambda x: f"{x:.3f}")
+    styled_dataframe(tmat_df, hide_index=False)
 
     with st.expander("How forward projection works"):
         st.markdown("""
