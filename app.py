@@ -23,37 +23,7 @@ st.markdown("""
 
 ### Why This App Was Created
 
-Financial markets do not behave the same way all the time. Periods of steady growth give way to sudden crashes, which resolve into volatile recoveries before calm returns. These distinct behavioral phases — known as **market regimes** — are invisible in raw price data. They cannot be read off a chart. They must be inferred.
-
-Traditional market analysis assumes that conditions are stationary. Standard risk metrics like annualized volatility, Sharpe ratios, and correlation matrices are computed over long historical windows as if the market behaves the same way throughout. It does not — and the consequences are real:
-
-- A portfolio optimized on 10 years of data allocates risk based on average conditions, not current conditions. When the market shifts from calm to crisis, the portfolio is wrong by construction.
-- A risk model that estimates Value-at-Risk from the full historical distribution understates tail risk during stress and overstates it during calm.
-- A trading strategy that works in trending markets may hemorrhage capital in volatile, mean-reverting markets — and vice versa.
-
-Most investors and analysts either ignore regimes entirely or identify them only in hindsight. This app was built to change that — making regime detection **accessible, rigorous, and validated**. It provides a complete workflow from raw market data to statistically tested regime assignments, solving the problem by:
-
-1. **Detecting regimes automatically** using a Gaussian Hidden Markov Model — a probabilistic model that learns to identify distinct market states from observable features like volatility, momentum, and drawdown.
-2. **Validating the detection rigorously** using walk-forward testing — the same chronological backtesting standard used by institutional quant teams — so you know whether the regimes are real patterns or statistical artifacts.
-3. **Making results actionable** through interactive visualizations, downloadable data, and interpretive reports.
-
----
-
-### Economic Importance
-
-Regime awareness has direct economic value across the financial industry:
-
-**For Portfolio Managers:**
-Regime-conditioned allocation can significantly improve risk-adjusted returns. During detected stress regimes, reducing equity exposure or increasing hedges protects capital. During confirmed bull regimes, maintaining full exposure captures upside. Studies in quantitative finance consistently show that regime-aware strategies outperform static allocations over full market cycles.
-
-**For Risk Managers:**
-Accurate regime identification improves risk measurement. Volatility forecasts that condition on the current regime are more accurate than unconditional forecasts. This means tighter, more reliable Value-at-Risk and Expected Shortfall estimates — directly reducing the capital reserves firms must hold.
-
-**For Traders and Strategists:**
-Different strategies work in different regimes. Momentum strategies thrive in trending markets but fail in volatile, choppy conditions. Mean-reversion strategies do the opposite. Knowing which regime the market is in — and how confident that assessment is — allows traders to select and size strategies appropriately.
-
-**For Researchers and Students:**
-Regime detection is a foundational concept in financial econometrics. This app provides a hands-on platform for exploring Hidden Markov Models, walk-forward validation, and feature engineering — skills that are directly applicable in quantitative finance careers.
+Financial markets move through changing regimes such as growth, crisis, recovery, and calm, but these shifts are not obvious from raw price charts. Most traditional analysis assumes markets behave consistently over time, which can lead to poor portfolio decisions, misleading risk estimates, and trading strategies that fail when conditions change. This app was created to make market regime detection practical, rigorous, and accessible by automatically identifying market states with a Gaussian Hidden Markov Model, validating them through walk-forward testing, and presenting the results through interactive visuals, downloadable outputs, and clear interpretation. Its value is broad: it helps portfolio managers adapt allocation to market conditions, improves risk estimates for risk managers, helps traders match strategies to the right environment, and gives researchers and students a hands-on way to explore an important concept in quantitative finance.
 
 ---
 
