@@ -63,6 +63,8 @@ def run_walkforward(
     fold_results = []
     all_test_states = []
     all_test_dates = []
+    all_test_close = []
+    all_test_returns = []
     refit_every = wf_config.get("refit_every", 1)
 
     for i, (tr_s, tr_e, te_s, te_e) in enumerate(folds_idx):
@@ -123,14 +125,18 @@ def run_walkforward(
 
         all_test_states.extend(test_states.tolist())
         all_test_dates.extend([str(d.date()) for d in dates[te_s:te_e]])
+        if close is not None:
+            all_test_close.extend(close[te_s:te_e].tolist())
+        all_test_returns.extend(log_ret[te_s:te_e].tolist())
 
     duration = round(time.time() - t0, 2)
     robust = robustness_summary(fold_results, n_states)
     global_labels = fold_results[-1]["regime_labels"] if fold_results else {}
 
-    # Build chart data
-    test_close = close[folds_idx[0][2]:folds_idx[-1][3]].tolist() if close is not None else []
-    test_returns = log_ret[folds_idx[0][2]:folds_idx[-1][3]].tolist()
+    # Chart data built per-fold so arrays stay length-aligned even when
+    # folds fail, skip, or the step/test windows don't tile exactly.
+    test_close = all_test_close
+    test_returns = all_test_returns
 
     return {
         "n_folds": len(fold_results),
