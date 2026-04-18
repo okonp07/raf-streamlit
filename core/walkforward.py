@@ -97,6 +97,23 @@ def run_walkforward(
 
         train_states = result["train_states"]
         test_states = result["test_states"]
+
+        # Canonicalize state IDs by in-fold training volatility so state `k`
+        # means the same thing (k-th lowest vol) across every fold. Without
+        # this, HMM's arbitrary state numbering makes the concatenated
+        # overlay chart paint different regimes with the same color.
+        vol_per_state = np.array([
+            float(np.std(train_ret[train_states == s])) if np.any(train_states == s) else np.inf
+            for s in range(n_states)
+        ])
+        order = np.argsort(vol_per_state)  # old state at rank k
+        remap = np.empty(n_states, dtype=int)
+        for new_id, old_id in enumerate(order):
+            remap[old_id] = new_id
+        train_states = remap[train_states]
+        test_states = remap[test_states]
+        transmat = np.array(result["transmat"])[order, :][:, order].tolist()
+
         labels = interpret_regimes(train_ret, train_states, n_states)
 
         fold_results.append({
@@ -110,7 +127,7 @@ def run_walkforward(
             "train_dates": [str(d.date()) for d in dates[tr_s:tr_e]],
             "test_dates": [str(d.date()) for d in dates[te_s:te_e]],
             "regime_labels": labels,
-            "transition_matrix": result["transmat"],
+            "transition_matrix": transmat,
             "train_occupancy": state_occupancy(train_states, n_states),
             "test_occupancy": state_occupancy(test_states, n_states),
             "train_persistence": regime_persistence(train_states),
