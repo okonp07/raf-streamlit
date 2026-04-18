@@ -27,14 +27,27 @@ def _label(labels, s):
 
 def price_regime_chart(dates, close, states, labels):
     fig = go.Figure()
-    if not close:
+    if not close or not dates:
         return fig
 
     c = get_colors()
-    y_min, y_max = min(close), max(close)
-    y_pad = (y_max - y_min) * 0.03
+    n = min(len(dates), len(close), len(states) if states else len(close))
+    dates = list(dates[:n])
+    close = list(close[:n])
+    states = list(states[:n]) if states else []
 
-    # Add colored background bands for regime periods (grouped consecutive)
+    y_min, y_max = min(close), max(close)
+    y_pad = (y_max - y_min) * 0.03 if y_max > y_min else 1
+
+    # Base price line FIRST so plotly infers the x-axis type from real date data
+    fig.add_trace(go.Scatter(
+        x=dates, y=close, mode="lines", name="Close",
+        line=dict(color=c["price_line"], width=2),
+        showlegend=False,
+        hovertemplate="<b>%{x}</b><br>Price: $%{y:,.2f}<extra></extra>",
+    ))
+
+    # Colored background bands for regime periods (grouped consecutive)
     unique_states = sorted(set(states))
     legend_shown = {s: False for s in unique_states}
 
@@ -44,7 +57,6 @@ def price_regime_chart(dates, close, states, labels):
         j = i
         while j < len(states) and states[j] == s:
             j += 1
-        # Band from dates[i] to dates[j-1]
         label = _label(labels, s)
         color = regime_color(s)
         fig.add_vrect(
@@ -52,23 +64,17 @@ def price_regime_chart(dates, close, states, labels):
             fillcolor=regime_color_alpha(s, 0.12),
             layer="below", line_width=0,
         )
-        # Invisible trace for legend entry
+        # Proxy trace just for the legend entry
         if not legend_shown[s]:
             fig.add_trace(go.Scatter(
-                x=[None], y=[None], mode="markers",
+                x=[], y=[], mode="markers",
                 marker=dict(size=10, color=color, symbol="square"),
                 name=label, legendgroup=str(s),
+                hoverinfo="skip",
+                showlegend=True,
             ))
             legend_shown[s] = True
         i = j
-
-    # Base price line — clean and prominent
-    fig.add_trace(go.Scatter(
-        x=dates, y=close, mode="lines", name="Close",
-        line=dict(color=c["price_line"], width=2),
-        showlegend=False,
-        hovertemplate="<b>%{x}</b><br>Price: $%{y:,.2f}<extra></extra>",
-    ))
 
     layout = base_layout(
         title="Price with Regime Overlay",
