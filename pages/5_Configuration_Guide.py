@@ -2,13 +2,18 @@
 
 import streamlit as st
 from pathlib import Path
+from components.design import render_page_hero
 from components.theme import apply_theme, render_footer, render_toggle
 
 render_toggle()
 apply_theme()
 
-st.header("Configuration & Features Guide")
-st.caption("A detailed reference for every configurable parameter in the app.")
+render_page_hero(
+    "Configuration Guide",
+    "A reference page for the configurable features, parameters, and modelling choices available throughout the app.",
+    eyebrow="Reference",
+    badges=["Feature definitions", "Model parameters", "Workflow reference"],
+)
 
 guide_path = Path("features.md")
 if guide_path.exists():

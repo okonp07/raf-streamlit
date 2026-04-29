@@ -1,63 +1,92 @@
-"""Regime-Aware Forecasting — Streamlit App."""
+"""Regime-Aware Forecasting Streamlit home page."""
 
 import streamlit as st
-from pathlib import Path
+
+from components.design import render_page_hero, render_stat_cards
 from components.theme import apply_theme, render_footer, render_toggle
 
-st.set_page_config(page_title="Regime-Aware Forecasting", page_icon="📊", layout="wide")
+st.set_page_config(
+    page_title="Regime-Aware Forecasting",
+    page_icon=None,
+    layout="wide",
+)
 
 render_toggle()
 apply_theme()
 
-# --- Hero banner ---
-is_dark = st.session_state["theme"] == "dark"
-banner = "assets/dark.png" if is_dark else "assets/light.png"
-if Path(banner).exists():
-    st.image(banner, use_container_width=True)
+current_ticker = st.session_state.get("ticker", "SPY")
+default_states = st.session_state.get("model_config", {}).get("n_states", 3)
+validation_mode = st.session_state.get("wf_config", {}).get("mode", "expanding").title()
+render_page_hero(
+    "Regime-Aware Forecasting",
+    "A single Streamlit application for detecting hidden market regimes, validating them with walk-forward testing, and presenting the results through a professional-grade analytical interface.",
+    eyebrow="Single-App Quant Workflow",
+    badges=[
+        "Gaussian HMM engine",
+        "Walk-forward validation",
+        "Out-of-sample regime overlay",
+        "Live regime monitor",
+        "Dark and light modes",
+    ],
+)
 
-st.caption("Market Regime Detection & Walk-Forward Validation")
+render_stat_cards(
+    [
+        {
+            "label": "Active Ticker",
+            "value": current_ticker,
+            "note": "The currently selected asset for data ingestion and analysis.",
+        },
+        {
+            "label": "Default States",
+            "value": default_states,
+            "note": "Current hidden-state count selected in model configuration.",
+        },
+        {
+            "label": "Validation Mode",
+            "value": validation_mode,
+            "note": "Chronological evaluation style for the walk-forward engine.",
+        },
+        {
+            "label": "Architecture",
+            "value": "One Streamlit App",
+            "note": "No separate backend required for the interactive experience.",
+        },
+    ]
+)
 
-# --- Why this app exists ---
-st.markdown("""
----
-
-### Why This App Was Created
-
-Financial markets move through changing regimes such as growth, crisis, recovery, and calm, but these shifts are not obvious from raw price charts. Most traditional analysis assumes markets behave consistently over time, which can lead to poor portfolio decisions, misleading risk estimates, and trading strategies that fail when conditions change. This app was created to make market regime detection practical, rigorous, and accessible by automatically identifying market states with a Gaussian Hidden Markov Model, validating them through walk-forward testing, and presenting the results through interactive visuals, downloadable outputs, and clear interpretation. Its value is broad: it helps portfolio managers adapt allocation to market conditions, improves risk estimates for risk managers, helps traders match strategies to the right environment, and gives researchers and students a hands-on way to explore an important concept in quantitative finance.
-
----
-
-### How the Engine Works
-""")
-
-st.markdown("""
-1. **Data Ingestion** — Fetch historical OHLCV data from Yahoo Finance for any listed asset
-2. **Feature Engineering** — Compute 19 regime-relevant features (volatility, momentum, drawdown, RSI, MACD, and more)
-3. **Regime Detection** — Identify latent market regimes using a Gaussian Hidden Markov Model
-4. **Walk-Forward Validation** — Evaluate model robustness with chronological train/test splits — no data leakage
-5. **Results & Export** — Inspect regime assignments visually, compare folds, and download reports
-
----
-
-Use the sidebar to navigate through the pages in order.
-
-| Step | Page | Description |
-|------|------|-------------|
-| 1 | Data Ingestion | Fetch and preview market data |
-| 2 | Feature Config | Select features for regime detection |
-| 3 | Model Config | Set HMM parameters |
-| 4 | Walk-Forward Setup | Configure validation engine |
-| 5 | Configuration Guide | Detailed reference for all parameters |
-| 6 | Run Analysis | Execute the full pipeline |
-| 7 | Results Dashboard | Explore charts and regime assignments |
-| 8 | Export | Download reports and CSV files |
-| 9 | Regime Monitor | Live probabilities, transition alerts & forward projections |
-| 10 | About | Author profiles and project credits |
-""")
-
-col1, col2, col3 = st.columns(3)
-col1.info(f"**Ticker:** {st.session_state.get('ticker', 'SPY')}")
-col2.info("**Default States:** 3")
-col3.info("**Validation:** Walk-Forward")
+st.markdown(
+    """
+    <section class="glass-card info-card" style="padding:1.45rem 1.5rem 1.35rem;margin-top:0.85rem;">
+        <div class="info-card-kicker">Overview</div>
+        <h3 style="margin-bottom:0.6rem;">A single workflow for understanding market structure from first data pull to live monitoring</h3>
+        <p>
+            Regime-Aware Forecasting is built to help you read market structure rather than isolated price moves.
+            Instead of treating every return the same way, the app uses a Gaussian Hidden Markov Model to infer
+            latent states such as bull expansion, transition, stress, and recovery so the same price series can be
+            interpreted in a richer regime-aware context.
+        </p>
+        <p>
+            The workflow is intentionally chronological. You begin with <strong>Data Ingestion</strong> to load OHLCV
+            history from Yahoo Finance, then move into <strong>Feature Configuration</strong> to choose the volatility,
+            momentum, drawdown, and technical signals you want the model to learn from. In
+            <strong> Model + Walk-Forward</strong>, you set the number of hidden states and the rolling or expanding
+            evaluation windows, then run the engine so the HMM is fit on past data and scored on unseen future windows
+            rather than on a random split.
+        </p>
+        <p>
+            From there, the <strong>Results Dashboard</strong> brings the analysis together through the out-of-sample
+            overlay, fold diagnostics, transition structure, robustness statistics, and the market-phase layer that
+            translates the raw regime model into more intuitive cycle language. It also checks whether those regimes
+            separate meaningfully on forward returns, realized volatility, drawdown risk, and average duration rather
+            than asking you to trust the colors on sight. <strong>Export</strong> packages the
+            session into CSV, JSON, and markdown outputs for research or reporting. Finally, <strong>Regime Monitor</strong>
+            trains on the full available history to show what regime and market phase the model believes we are in now,
+            how long we have likely been there, and how far through that run we may already be.
+        </p>
+    </section>
+    """,
+    unsafe_allow_html=True,
+)
 
 render_footer()

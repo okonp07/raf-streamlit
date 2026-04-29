@@ -6,7 +6,7 @@ from hmmlearn.hmm import GaussianHMM
 
 def fit_hmm(
     train_X: np.ndarray, test_X: np.ndarray,
-    n_states: int = 3, covariance_type: str = "full",
+    n_states: int = 3, covariance_type: str = "diag",
     n_iter: int = 200, tol: float = 1e-4, random_seed: int = 42,
 ) -> dict:
     model = GaussianHMM(
@@ -49,31 +49,120 @@ def _n_params(n_states, n_features, cov_type):
     return p
 
 
-def interpret_regimes(returns: np.ndarray, states: np.ndarray, n_states: int) -> dict[int, str]:
-    stats = []
+def summarize_state_profiles(
+    returns: np.ndarray,
+    states: np.ndarray,
+    n_states: int,
+) -> list[dict]:
+    profiles = []
     for s in range(n_states):
-        r = returns[states == s]
-        stats.append({"state": s, "mean": float(np.mean(r)) if len(r) else 0, "vol": float(np.std(r)) if len(r) else 999})
+        state_returns = returns[states == s]
+        profiles.append(
+            {
+                "state": s,
+                "count": int(len(state_returns)),
+                "mean": float(np.mean(state_returns)) if len(state_returns) else 0.0,
+                "vol": float(np.std(state_returns)) if len(state_returns) else np.inf,
+            }
+        )
+    return profiles
 
-    sorted_by_vol = sorted(stats, key=lambda x: x["vol"])
-    labels = {}
+
+def canonical_order_from_profiles(profiles: list[dict]) -> list[int]:
+    states = [p["state"] for p in profiles]
+    mean_desc = {
+        state: rank
+        for rank, state in enumerate(
+            [p["state"] for p in sorted(profiles, key=lambda p: (p["mean"], -p["vol"]), reverse=True)]
+        )
+    }
+    mean_asc = {
+        state: rank
+        for rank, state in enumerate(
+            [p["state"] for p in sorted(profiles, key=lambda p: (p["mean"], p["vol"]))]
+        )
+    }
+    vol_asc = {
+        state: rank
+        for rank, state in enumerate(
+            [p["state"] for p in sorted(profiles, key=lambda p: (p["vol"], -p["mean"]))]
+        )
+    }
+    vol_desc = {
+        state: rank
+        for rank, state in enumerate(
+            [p["state"] for p in sorted(profiles, key=lambda p: (p["vol"], p["mean"]), reverse=True)]
+        )
+    }
+
+    bull_state = min(states, key=lambda s: mean_desc[s] + vol_asc[s])
+    remaining = [s for s in states if s != bull_state]
+    stress_state = min(remaining, key=lambda s: mean_asc[s] + vol_desc[s])
+    middle_states = [s for s in remaining if s != stress_state]
+
+    if not middle_states:
+        return [bull_state, stress_state]
+
+    middle_states = sorted(
+        middle_states,
+        key=lambda s: (
+            mean_asc[s] + vol_asc[s],
+            mean_asc[s],
+            vol_asc[s],
+        ),
+    )
+    return [bull_state, *middle_states, stress_state]
+
+
+def labels_from_profiles(profiles: list[dict]) -> dict[int, str]:
+    n_states = len(profiles)
+    order = canonical_order_from_profiles(profiles)
+    by_state = {p["state"]: p for p in profiles}
+    labels: dict[int, str] = {}
+
+    bull_state = order[0]
+    bull_profile = by_state[bull_state]
+    labels[bull_state] = (
+        "Bull / Expansion"
+        if bull_profile["mean"] >= 0
+        else "Defensive / Consolidation"
+    )
 
     if n_states == 2:
-        low, high = sorted_by_vol
-        labels[low["state"]] = "Bull / Low Vol" if low["mean"] >= 0 else "Calm / Negative"
-        labels[high["state"]] = "Stress / High Vol" if high["mean"] < 0 else "Volatile / Positive"
-    elif n_states == 3:
-        low, mid, high = sorted_by_vol
-        labels[low["state"]] = "Bull / Low Vol" if low["mean"] >= 0 else "Calm / Mild Decline"
-        labels[mid["state"]] = "Transition / Moderate"
-        labels[high["state"]] = "Stress / High Vol" if high["mean"] < 0 else "Volatile / Recovery"
-    else:
-        for i, stat in enumerate(sorted_by_vol):
-            pct = i / (n_states - 1) if n_states > 1 else 0
-            if pct < 0.33:
-                labels[stat["state"]] = "Low Vol" if stat["mean"] >= 0 else "Calm"
-            elif pct < 0.66:
-                labels[stat["state"]] = "Moderate"
-            else:
-                labels[stat["state"]] = "Stress / High Vol" if stat["mean"] < 0 else "Volatile"
+        stress_state = order[1]
+        stress_profile = by_state[stress_state]
+        labels[stress_state] = (
+            "Bear / Stress"
+            if stress_profile["mean"] < 0
+            else "Volatile / Recovery"
+        )
+        return labels
+
+    stress_state = order[-1]
+    stress_profile = by_state[stress_state]
+    labels[stress_state] = (
+        "Bear / Stress"
+        if stress_profile["mean"] < 0
+        else "Volatile / Recovery"
+    )
+
+    middle_states = order[1:-1]
+    for idx, state in enumerate(middle_states):
+        profile = by_state[state]
+        if profile["mean"] < -0.00025:
+            label = "Distribution / Drawdown"
+        elif profile["mean"] > 0.00025:
+            label = "Recovery / Transition"
+        else:
+            label = "Transition / Mixed"
+
+        if len(middle_states) > 1:
+            label = f"{label} {idx + 1}"
+        labels[state] = label
+
     return labels
+
+
+def interpret_regimes(returns: np.ndarray, states: np.ndarray, n_states: int) -> dict[int, str]:
+    profiles = summarize_state_profiles(returns, states, n_states)
+    return labels_from_profiles(profiles)

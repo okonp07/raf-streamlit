@@ -3,13 +3,18 @@
 import base64
 import streamlit as st
 from pathlib import Path
+from components.design import render_page_hero
 from components.theme import apply_theme, render_footer, render_toggle
 
 render_toggle()
 apply_theme()
 
-st.header("About")
-st.markdown("Meet the team behind Regime-Aware Forecasting.")
+render_page_hero(
+    "About",
+    "Meet the people behind the regime-aware forecasting workflow and the product decisions that shaped this application.",
+    eyebrow="Team",
+    badges=["Quant design", "Model implementation", "Research interface"],
+)
 
 st.divider()
 

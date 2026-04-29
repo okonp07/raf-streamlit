@@ -99,7 +99,7 @@ The model configuration controls the Gaussian Hidden Markov Model that learns to
 | Parameter | Default | Range | What It Does | Increasing | Decreasing |
 |-----------|---------|-------|--------------|-----------|------------|
 | **Number of Hidden States** | 3 | 2 - 6 | The number of distinct market regimes the model will try to identify. This is the most important hyperparameter. | More states = finer regime distinctions (e.g., mild bull, strong bull, transition, mild stress, crash). However, more states require more data to estimate reliably and are harder to interpret. Above 4 states, regimes often become unstable across folds. | Fewer states = coarser but more stable regimes. **2 states** gives a clean bull/bear split. **3 states** adds a transition regime. 2-3 states is recommended for most use cases. |
-| **Covariance Type** | full | full, diag, tied, spherical | Controls how the model represents the spread/correlation of features within each state. | **full**: Each state has its own full covariance matrix (features can be correlated differently per regime). Most flexible but requires the most data. Best for rich feature sets. | **diag**: Features are assumed independent within each state. Fewer parameters, more stable with limited data. **tied**: All states share one covariance matrix; only means differ. **spherical**: Each state has a single variance (all features equally variable). Use with very few data points. |
+| **Covariance Type** | diag | full, diag, tied, spherical | Controls how the model represents the spread/correlation of features within each state. | **full**: Each state has its own full covariance matrix (features can be correlated differently per regime). Most flexible but requires the most data. Best when you have abundant history and want a richer fit. | **diag**: Features are assumed independent within each state. Fewer parameters, more stable with limited data, and the recommended default for this app. **tied**: All states share one covariance matrix; only means differ. **spherical**: Each state has a single variance (all features equally variable). Use with very few data points. |
 | **Max Iterations** | 200 | 10 - 1000 | Maximum number of EM (Expectation-Maximization) algorithm iterations for fitting. | Higher values give the optimizer more time to converge. Rarely needed above 200 for daily market data. Set to 500+ only if you see convergence warnings. | Lower values speed up fitting but risk stopping before convergence. Below 50, the model may produce poor regime assignments. |
 | **Convergence Tolerance** | 1e-4 | 1e-8 - 1e-1 | The algorithm stops when the log-likelihood improvement between iterations falls below this threshold. | Tighter tolerance (e.g., 1e-6) demands more precise convergence. Marginally better fit but slower. | Looser tolerance (e.g., 1e-2) stops earlier. Faster but the model may not have fully converged. Use for quick exploratory runs. |
 | **Random Seed** | 42 | 0 - 99999 | Initializes the random number generator for reproducible results. The HMM uses random initialization for state parameters. | Changing the seed produces different initial conditions, which may lead to different local optima and different regime assignments. Use multiple seeds to test stability. | N/A. Keep fixed for reproducibility; vary to test robustness. |
@@ -159,7 +159,7 @@ A model that fits historical data well may simply be memorizing patterns rather 
 For a first run with daily data (e.g. SPY, QQQ, BTC-USD, or any liquid asset, 2018-2025):
 
 - **Features**: Keep all defaults enabled
-- **Model**: 3 states, full covariance, scaling on
+- **Model**: 3 states, diag covariance, scaling on
 - **Walk-Forward**: Expanding, 504/63/63
 
 This produces approximately 20 folds with 3 interpretable regimes (Bull, Transition, Stress) and runs in under 2 minutes.
@@ -171,7 +171,7 @@ The robustness summary shows "Regimes are unstable" when regime characteristics 
 1. **Reduce the number of states** from 3 to 2
 2. **Reduce the number of features** — keep only log returns, volatility (20d), and drawdown
 3. **Increase the training window** to 756 (3 years) or 1008 (4 years)
-4. **Switch covariance type** from "full" to "diag" (fewer parameters to estimate)
+4. **Keep covariance type on "diag"** or switch back from "full" if you need a more stable fit
 
 ### 4.3 If Regimes Are Not Distinct
 

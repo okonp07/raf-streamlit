@@ -1,281 +1,217 @@
-# Regime-Aware Forecasting (RAF)
+# Regime-Aware Forecasting
 
-A Streamlit application for detecting latent market regimes in any yfinance-listed asset (stocks, ETFs, indices, commodities, crypto, forex) using Gaussian Hidden Markov Models, validated through a rigorous walk-forward testing framework.
+A single Streamlit application for detecting latent market regimes in any `yfinance`-listed asset using Gaussian Hidden Markov Models, evaluating them with walk-forward validation, and presenting the results through a modern analytics interface.
 
----
+## What The App Does
 
-## What This Project Does
+Financial markets move through phases such as bull expansion, transition, stress, and recovery. Those phases are not directly observed in raw price charts, so this app infers them from engineered price and volume features with a Gaussian HMM.
 
-Financial markets cycle through distinct behavioral phases: calm uptrends, volatile selloffs, sideways consolidation, and recovery periods. These phases are called **regimes**, and they are not directly observable — they must be inferred from price and volume data.
+The app supports two complementary workflows:
 
-This app uses a **Gaussian Hidden Markov Model (HMM)** to identify these hidden regimes from engineered features like volatility, momentum, and drawdown. It then validates the model's robustness using **walk-forward validation** — a chronological backtesting method that prevents data leakage and simulates how the model would have performed in real time.
+- Walk-forward analysis for out-of-sample regime detection and robustness evaluation
+- Full-history regime monitoring for current-state probabilities, alerts, and forward projections
 
-### Who Is This For?
+The product direction in this branch is intentionally simple:
 
-- Quantitative analysts exploring regime-based strategies
-- Finance students learning about HMMs and walk-forward testing
-- Researchers studying market microstructure and volatility clustering
-- Anyone curious about unsupervised learning applied to financial time series
+- one Streamlit app
+- one in-process analytical pipeline
+- no separate backend required for the interactive experience
 
----
-
-## How It Works
+## Core Workflow
 
 ### 1. Data Ingestion
 
-The app fetches historical OHLCV (Open, High, Low, Close, Volume) data from Yahoo Finance via the `yfinance` library. You can configure:
+The app pulls historical OHLCV data from Yahoo Finance with:
 
-- **Ticker symbol** — browse by category or type any yfinance ticker (default: SPY)
-- **Date range** (default: 2018-01-01 to 2025-01-01)
-- **Interval** (daily, weekly, or monthly)
+- ticker selection by category
+- manual ticker entry
+- configurable date range
+- daily, weekly, or monthly intervals
+- optional adjusted prices
 
-Data is cached for performance. Missing values are forward-filled with a 5-period limit.
+Data fetches are cached through Streamlit for faster iteration.
 
 ### 2. Feature Engineering
 
-Raw price data is transformed into 19 regime-relevant features. All features use **only past data** — no look-ahead leakage:
+The model works on a configurable feature set derived from OHLCV data, including:
 
-| Feature | Description |
-|---------|-------------|
-| Log return | ln(Close_t / Close_{t-1}) |
-| Simple return | Percentage change in close price |
-| Rolling volatility | Standard deviation of log returns (5, 10, 20-day windows) |
-| Rolling mean return | Average log return over rolling windows |
-| Drawdown | Current distance from running maximum |
-| Rolling max drawdown | Worst drawdown over trailing 20 days |
-| ATR range | Normalized intraday range: (High - Low) / Close |
-| Volume change | Percentage change in volume |
-| Z-scored return | Return standardized by its 20-day rolling mean and std |
-| Momentum | Price change over 10 and 20-day lookbacks |
-| Realized volatility | Square root of sum of squared returns (20-day) |
-| RSI (14-day) | Relative Strength Index |
-| MACD histogram | Difference between MACD line and signal line |
-| Rolling skewness | 20-day rolling skew of returns |
-| Rolling kurtosis | 20-day rolling kurtosis of returns |
+- log returns
+- simple returns
+- rolling volatility
+- rolling mean returns
+- drawdown
+- rolling max drawdown
+- ATR-style range
+- volume change
+- z-scored returns
+- momentum windows
+- realised volatility
+- RSI
+- MACD histogram
+- rolling skewness
+- rolling kurtosis
 
-All features can be toggled on or off from the Feature Config page.
+All rolling features are built using past information only. Rows with incomplete warm-up windows are dropped after feature construction.
 
-### 3. Regime Detection (Gaussian HMM)
+### 3. HMM Regime Detection
 
-The app uses `hmmlearn`'s **GaussianHMM** to model the feature matrix as emissions from hidden states. Each state represents a distinct market regime characterized by its own mean vector and covariance structure.
+The app fits `hmmlearn`'s `GaussianHMM` to the engineered feature matrix. You can configure:
 
-**Configurable parameters:**
+- number of hidden states from 2 to 6
+- covariance structure
+- optimisation tolerance
+- maximum iterations
+- random seed
+- train-only feature scaling
 
-- **Number of states** (2-6, default 3) — e.g., Bull, Transition, Stress
-- **Covariance type** — full, diagonal, tied, or spherical
-- **Max iterations** and convergence tolerance
-- **Random seed** for reproducibility
-- **Feature scaling** — StandardScaler fit on training data only
+After fitting, state IDs are canonicalised so the dashboard can keep a consistent colour assignment across folds.
 
-After fitting, states are **not arbitrarily labeled**. Instead, the app examines each state's average return and volatility to assign descriptive labels like "Bull / Low Vol", "Transition / Moderate", or "Stress / High Vol".
+The default covariance choice in this branch is `diag`, which is a better stability-first starting point for financial walk-forward windows. `full` remains available when you want a more flexible fit and have enough data to support it.
 
 ### 4. Walk-Forward Validation
 
-This is the core of the project. Unlike a simple train/test split, walk-forward validation:
+The walk-forward engine:
 
-1. Splits data into sequential train/test windows
-2. Fits the model on the train window only
-3. Predicts regimes on the unseen test window
-4. Advances the window forward and repeats
+1. creates chronological train and test splits
+2. fits the model on each training window only
+3. scores the unseen test window
+4. advances through history using rolling or expanding windows
 
-**Two modes:**
+Configurable settings include:
 
-- **Expanding window** — Training set grows each step (more data, but older)
-- **Rolling window** — Fixed-size training window slides forward
+- train window
+- test window
+- step size
+- minimum observations
+- refit frequency
 
-**Key parameters:**
+### 5. Results Dashboard
 
-- Train window size (default: 504 days = ~2 years)
-- Test window size (default: 63 days = ~1 quarter)
-- Step size (default: 63 days)
-- Minimum observations required
+The dashboard focuses on technically honest interpretation.
 
-**Why this matters:** Walk-forward validation simulates real-world deployment. The model never sees future data during training, and scaling is always fit on the training window only. This gives honest estimates of out-of-sample regime detection quality.
+The main overlay chart now works like this:
 
-### 5. Evaluation Metrics
+- the full price series is shown as muted historical context
+- only dates that were actually scored out of sample are colour-coded by regime
+- a minimum-duration smoothing filter can merge one-off state flickers before the overlay is displayed
+- the app reports the percentage coverage of modelled dates that received out-of-sample assignments
+- a second market-phase overlay translates the HMM output into cycle language such as capitulation, repair, distribution, and bull expansion using trailing context only
 
-Since regime detection is unsupervised (no ground truth labels), the app evaluates using:
+Other dashboard views include:
 
-| Metric | What it measures |
-|--------|-----------------|
-| State occupancy | Fraction of time spent in each regime |
-| Regime persistence | How often the state stays the same day-to-day |
-| Transition matrix | Probabilities of switching between regimes |
-| State separation | How distinct the regimes are in feature space |
-| Per-regime return stats | Mean return, volatility, Sharpe, max drawdown by regime |
-| Log-likelihood, AIC, BIC | Model fit quality and complexity penalties |
-| Cross-fold consistency | Whether regimes maintain similar characteristics across folds |
-| Robustness summary | Overall assessment of model stability |
+- transition matrix
+- state occupancy
+- return distributions by regime
+- cumulative drawdown
+- fold timeline
+- per-fold train and test regime statistics
+- cross-fold robustness summary
+- forward regime validation tables showing forward 7d, 14d, and 30d returns, realized volatility, drawdown hit rates, and average regime duration
 
-### 6. Results Dashboard
+### 6. Regime Monitor
 
-Interactive Plotly charts include:
+The monitor page trains on all available history to support:
 
-- **Price with regime overlay** — Asset close price colored by detected regime
-- **Transition probability heatmap** — How likely each regime switch is
-- **State occupancy bar chart** — Time allocation across regimes
-- **Return distributions by regime** — Histograms showing regime-specific return profiles
-- **Cumulative drawdown chart** — Underwater equity curve
-- **Fold timeline** — Visual map of all train/test windows
-- **Per-fold detail** — Drill into any individual fold's statistics
+- current regime identification
+- current market phase identification
+- posterior regime probabilities
+- current regime duration tracking
+- current market phase duration tracking
+- estimated progress through the current regime
+- estimated progress through the current market phase
+- model-implied likely end date for the active regime
+- likely end date for the active market phase
+- transition alerts when confidence weakens
+- forward projections using the learned transition matrix
+- regime gauges and probability charts
 
-### 7. Regime Monitor
+### 7. Export
 
-Beyond historical analysis, the app includes a **live regime monitoring** page that:
+The export page generates:
 
-- **Trains on all available data** to give the best possible read on the current market state
-- **Shows regime probabilities** — not just the assigned regime, but the model's full probability distribution (e.g., 72% Bull, 23% Stress, 5% Recovery)
-- **Fires transition alerts** when the current regime's confidence drops below a threshold — an early warning that a regime change may be underway
-- **Projects forward** using the learned transition matrix to estimate regime probabilities N days ahead
-- **Displays gauge charts** for each regime's current probability at a glance
+- fold metrics CSV
+- state assignments CSV
+- summary JSON
+- markdown report
 
-This transforms the tool from backward-looking detection into forward-looking monitoring.
+If you have also run the Regime Monitor, the JSON and markdown report include the current regime lifecycle summary as well.
+If the phase layer has been generated, exports also include the model-derived market phase descriptions and the current market phase lifecycle summary.
 
-### 8. Export
-
-Download results in multiple formats:
-
-- **Fold metrics CSV** — Persistence, separation, AIC/BIC per fold
-- **State assignments CSV** — Date-level regime labels across all folds
-- **Summary JSON** — Robustness metrics and regime labels
-- **Markdown report** — Human-readable analysis summary
-
----
+All exports are produced directly from the active Streamlit session.
 
 ## Project Structure
 
-```
+```text
 raf-streamlit/
-├── app.py                         # Home page
+├── app.py
 ├── pages/
-│   ├── 1_Data_Ingestion.py        # Fetch and preview market data
-│   ├── 2_Feature_Config.py        # Toggle features on/off
-│   ├── 3_Model_Config.py          # HMM parameters
-│   ├── 4_Walk_Forward_Setup.py    # Validation engine settings
-│   ├── 5_Configuration_Guide.py   # Detailed reference for all parameters
-│   ├── 6_Run_Analysis.py          # Execute the full pipeline
-│   ├── 7_Results_Dashboard.py     # Charts, metrics, per-fold analysis
-│   ├── 8_Export.py                # Download reports and CSV files
-│   ├── 9_Regime_Monitor.py        # Live probabilities, alerts & projections
-│   └── 10_About.py               # Author profiles and project credits
+│   ├── 1_Data_Ingestion.py
+│   ├── 2_Feature_Config.py
+│   ├── 3_Model_Config.py
+│   ├── 4_Walk_Forward_Setup.py
+│   ├── 5_Configuration_Guide.py
+│   ├── 6_Run_Analysis.py
+│   ├── 7_Results_Dashboard.py
+│   ├── 8_Export.py
+│   ├── 9_Regime_Monitor.py
+│   └── 10_About.py
 ├── core/
-│   ├── data.py                    # yfinance data fetching with caching
-│   ├── features.py                # Feature engineering pipeline
-│   ├── models.py                  # HMM fitting and regime interpretation
-│   ├── metrics.py                 # Evaluation metrics (occupancy, persistence, etc.)
-│   ├── monitor.py                 # Live regime monitoring and forward projection
-│   └── walkforward.py             # Walk-forward validation engine
+│   ├── data.py
+│   ├── features.py
+│   ├── metrics.py
+│   ├── models.py
+│   ├── monitor.py
+│   └── walkforward.py
 ├── components/
-│   ├── charts.py                  # Plotly chart builders
-│   └── theme.py                   # Theme injection and footer
-├── .streamlit/
-│   └── config.toml                # Streamlit theme configuration
-├── requirements.txt               # Python dependencies
+│   ├── charts.py
+│   ├── design.py
+│   └── theme.py
+├── assets/
+├── features.md
+├── requirements.txt
 └── README.md
 ```
 
----
-
-## Deploy on Streamlit Cloud (Free)
-
-1. Push this repo to GitHub
-2. Go to [share.streamlit.io](https://share.streamlit.io)
-3. Sign in with GitHub
-4. Click **New app**
-5. Select your repo, branch `main`, main file `app.py`
-6. Click **Deploy**
-
-Your app will be live at `https://your-app.streamlit.app` within minutes.
-
----
-
-## Run Locally
+## Running The App
 
 ```bash
-# Clone the repo
 git clone https://github.com/okonp07/raf-streamlit.git
 cd raf-streamlit
-
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-
-# Install dependencies
+python3.12 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-
-# Run the app
-streamlit run app.py
+python -m streamlit run app.py
 ```
 
-Open http://localhost:8501 in your browser.
+The app opens locally at `http://localhost:8501`.
 
----
+If you already have a system-wide `streamlit` installed, prefer `python -m streamlit run app.py` from the activated `.venv` so the app uses the project dependencies, including `hmmlearn`.
 
-## How to Use the App
+## How To Use It
 
-### Quick Start (5 minutes)
+### Quick Start
 
 1. Open the app
-2. Go to **Data Ingestion** — click **Fetch Data** (defaults are fine)
-3. Skip to **Run Analysis** — click **Run Analysis**
-4. Go to **Results Dashboard** — explore the charts
-5. Go to **Export** — download the report
+2. Fetch data on the Data Ingestion page
+3. Keep the default feature, model, and walk-forward settings
+4. Run the analysis
+5. Review the corrected out-of-sample overlay in Results Dashboard
+6. Export the report if needed
 
-### Customized Run
+### Practical Tips
 
-1. **Data Ingestion** — Pick an asset category, select a ticker or type any symbol
-2. **Feature Config** — Disable features you don't want (e.g., turn off kurtosis)
-3. **Model Config** — Try 2 states instead of 3, or change covariance to "diag"
-4. **Walk-Forward Setup** — Use rolling instead of expanding, or change window sizes
-5. **Run Analysis** — Execute with your custom settings
-6. **Results Dashboard** — Compare regime characteristics
-7. **Export** — Save everything for your research
-8. **Regime Monitor** — Train on all data and monitor live regime probabilities, alerts, and projections
+- Start with 2 or 3 states before exploring higher-complexity models
+- Keep the default `diag` covariance until you have a reason to switch
+- Use a shorter date range first if you want faster iteration
+- Keep `step_size == test_window` if you want non-overlapping out-of-sample test blocks
+- If regimes look unstable, reduce the feature set or simplify the covariance structure
+- Use the Regime Monitor only after you are comfortable with the walk-forward configuration
 
-### Tips
+## Methodological Notes
 
-- **Fewer features** = faster and sometimes more stable regimes
-- **2 states** gives a clear bull/bear split; **3 states** adds a transition regime
-- **Rolling mode** is better for detecting regime changes in recent data
-- **Larger step size** = fewer folds = faster run
-- Start with a shorter date range (e.g., 2020-2025) for quick experimentation
-
----
-
-## Dependencies
-
-| Package | Purpose |
-|---------|---------|
-| streamlit | Web application framework |
-| pandas | Data manipulation |
-| numpy | Numerical computing |
-| yfinance | Yahoo Finance data API (free) |
-| plotly | Interactive charts |
-| scikit-learn | Feature scaling (StandardScaler) |
-| hmmlearn | Gaussian Hidden Markov Models |
-| joblib | Caching utilities |
-
-All dependencies are free and open source.
-
----
-
-## Modeling Assumptions and Caveats
-
-- **Unsupervised detection** — There is no ground truth for market regimes. Labels are inferred from observed statistics, not predefined
-- **Gaussian emissions** — The HMM assumes features follow a Gaussian distribution within each state. Real market returns have fat tails, which the model may not fully capture
-- **Stationarity** — The model assumes regime dynamics are stationary over time. In practice, market structure evolves
-- **Feature selection matters** — Different features can lead to different regime assignments. The app lets you experiment with this
-- **Not investment advice** — This is a research and educational tool. Regime detection results should not be used as the sole basis for trading decisions
-- **Walk-forward reduces but does not eliminate overfitting** — Especially with many states and features relative to data length
-- **yfinance data quality** — Free data may have occasional gaps or delays. The app handles common issues but is not a substitute for a professional data feed
-
----
-
-## Suggested Next Steps
-
-- Compare 2-state vs 3-state vs 4-state models on the same data
-- Test different feature subsets to see which drive regime separation
-- Try rolling vs expanding window modes
-- Apply to different asset classes using the built-in category picker
-- Build regime-conditioned trading rules as a follow-up project
-- Add macro features (VIX, yield curve, credit spreads) for richer state characterization
+- Regime detection is unsupervised, so there is no ground-truth label set
+- HMM state identities are permutation-invariant, which is why canonicalisation matters for fold-to-fold comparison
+- The walk-forward overlay should be interpreted as out-of-sample scored segments layered on top of full historical price context
+- On structurally upward-trending assets such as BTC, even stress regimes can still average positive forward returns; the more useful test is whether they remain weaker and riskier than bull regimes
+- Results remain sensitive to feature choice, window design, and state count
+- This tool supports research and analysis; it is not investment advice

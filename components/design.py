@@ -1,33 +1,35 @@
-"""Centralized design system — colors, fonts, spacing, and helpers."""
+"""Centralized design system - colors, typography, spacing, and helpers."""
 
 import streamlit as st
 
-# ─── Regime color palette (premium, muted tones) ──────────────────────────
+# Regime color palette
 REGIME_COLORS = {
-    "bull":       "#2a9d8f",   # refined teal-green
-    "transition": "#e9c46a",   # warm gold
-    "stress":     "#e76f51",   # muted crimson-coral
-    "extra_1":    "#457b9d",   # steel blue
-    "extra_2":    "#9b5de5",   # soft purple
-    "extra_3":    "#00b4d8",   # cyan accent
+    "bull": "#14b8a6",
+    "transition": "#f6c453",
+    "stress": "#f97366",
+    "extra_1": "#4f7cff",
+    "extra_2": "#0ea5e9",
+    "extra_3": "#84cc16",
 }
 
-# Ordered list for state index mapping (works for 2-6 states)
 REGIME_PALETTE = [
-    "#2a9d8f",  # bull / low vol     — teal-green
-    "#e76f51",  # stress / high vol  — crimson-coral
-    "#457b9d",  # moderate / blue    — steel blue
-    "#e9c46a",  # transition         — warm gold
-    "#9b5de5",  # extra              — soft purple
-    "#00b4d8",  # extra              — cyan
+    "#14b8a6",
+    "#f97366",
+    "#4f7cff",
+    "#f6c453",
+    "#0ea5e9",
+    "#84cc16",
 ]
 
-# Semi-transparent versions for fills
-REGIME_PALETTE_ALPHA = [c + "33" for c in REGIME_PALETTE]  # ~20% opacity hex
+PHASE_COLORS = {
+    "Bull Expansion": "#14b8a6",
+    "Repair": "#84cc16",
+    "Distribution": "#f59e0b",
+    "Capitulation": "#4f7cff",
+}
 
-# ─── Supporting colors ────────────────────────────────────────────────────
-TRAIN_COLOR = "#457b9d"
-TEST_COLOR  = "#e76f51"
+TRAIN_COLOR = "#4f7cff"
+TEST_COLOR = "#f97366"
 DRAWDOWN_COLOR = "#e76f51"
 DRAWDOWN_FILL  = "rgba(231, 111, 81, 0.15)"
 PRICE_LINE_DARK  = "#a8b2c1"
@@ -37,25 +39,26 @@ GRID_LIGHT = "rgba(0,0,0,0.07)"
 ZERO_LINE_DARK  = "rgba(255,255,255,0.15)"
 ZERO_LINE_LIGHT = "rgba(0,0,0,0.12)"
 
-# ─── Typography ───────────────────────────────────────────────────────────
-FONT_FAMILY = "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif"
-TITLE_SIZE = 15
+# Typography
+FONT_FAMILY = "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+DISPLAY_FONT = "'Sora', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+TITLE_SIZE = 17
 SUBTITLE_SIZE = 12
 AXIS_LABEL_SIZE = 11
 TICK_SIZE = 10
 ANNOTATION_SIZE = 11
 LEGEND_SIZE = 11
 
-# ─── Chart dimensions ────────────────────────────────────────────────────
+# Chart dimensions
 CHART_HEIGHT_MAIN = 480
 CHART_HEIGHT_HALF = 380
 CHART_HEIGHT_SMALL = 320
 CHART_HEIGHT_GAUGE = 240
 CHART_HEIGHT_DUAL = 620
 
-# ─── Spacing ──────────────────────────────────────────────────────────────
-CHART_MARGIN = dict(l=48, r=24, t=56, b=40)
-CHART_MARGIN_COMPACT = dict(l=40, r=16, t=48, b=32)
+# Spacing
+CHART_MARGIN = dict(l=52, r=24, t=88, b=78)
+CHART_MARGIN_COMPACT = dict(l=44, r=18, t=76, b=72)
 
 
 def is_dark():
@@ -89,8 +92,11 @@ def base_layout(title="", subtitle="", height=CHART_HEIGHT_MAIN, margin=None):
         font=dict(family=FONT_FAMILY, size=TICK_SIZE, color=c["text"]),
         title=dict(
             text=f"<b>{title}</b>" + (f"<br><span style='font-size:{SUBTITLE_SIZE}px;color:{c['text_secondary']}'>{subtitle}</span>" if subtitle else ""),
-            font=dict(size=TITLE_SIZE, color=c["text"]),
+            font=dict(size=TITLE_SIZE, family=DISPLAY_FONT, color=c["text"]),
             x=0.0, xanchor="left",
+            y=0.97,
+            yanchor="top",
+            pad=dict(t=4, b=12),
         ) if title else None,
         plot_bgcolor=c["bg"],
         paper_bgcolor=c["paper"],
@@ -101,6 +107,7 @@ def base_layout(title="", subtitle="", height=CHART_HEIGHT_MAIN, margin=None):
             title_font=dict(size=AXIS_LABEL_SIZE, color=c["text_secondary"]),
             showgrid=True,
             gridwidth=1,
+            automargin=True,
         ),
         yaxis=dict(
             gridcolor=c["grid"],
@@ -109,16 +116,18 @@ def base_layout(title="", subtitle="", height=CHART_HEIGHT_MAIN, margin=None):
             title_font=dict(size=AXIS_LABEL_SIZE, color=c["text_secondary"]),
             showgrid=True,
             gridwidth=1,
+            automargin=True,
         ),
         legend=dict(
             font=dict(size=LEGEND_SIZE, color=c["text"]),
             bgcolor="rgba(0,0,0,0)",
             borderwidth=0,
             orientation="h",
-            yanchor="bottom",
-            y=1.02,
+            yanchor="top",
+            y=-0.22,
             xanchor="left",
             x=0,
+            itemclick="toggleothers",
         ),
         hoverlabel=dict(
             bgcolor="#1e293b" if is_dark() else "#ffffff",
@@ -144,6 +153,87 @@ def regime_color_alpha(state_idx, alpha=0.2):
     return f"rgba({r},{g},{b},{alpha})"
 
 
+def phase_color(name):
+    """Get market phase color by phase name."""
+    return PHASE_COLORS.get(name, "#94a3b8")
+
+
+def phase_color_alpha(name, alpha=0.2):
+    """Get market phase color with alpha as rgba string."""
+    hex_c = phase_color(name)
+    r, g, b = int(hex_c[1:3], 16), int(hex_c[3:5], 16), int(hex_c[5:7], 16)
+    return f"rgba({r},{g},{b},{alpha})"
+
+
+def render_page_hero(title, description, eyebrow=None, badges=None):
+    """Render a product-style page hero."""
+    badge_markup = ""
+    if badges:
+        badge_markup = "".join(
+            f'<span class="hero-badge">{badge}</span>'
+            for badge in badges
+        )
+
+    eyebrow_markup = (
+        f'<div class="hero-eyebrow">{eyebrow}</div>'
+        if eyebrow else ""
+    )
+
+    st.markdown(
+        f"""
+        <section class="hero-shell">
+            {eyebrow_markup}
+            <h1>{title}</h1>
+            <p>{description}</p>
+            <div class="hero-badges">{badge_markup}</div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_stat_cards(items):
+    """Render a row of metric cards with HTML styling."""
+    if not items:
+        return
+
+    cols = st.columns(len(items))
+    for col, item in zip(cols, items):
+        value = item.get("value", "-")
+        label = item.get("label", "")
+        note = item.get("note", "")
+        col.markdown(
+            f"""
+            <div class="metric-tile">
+                <div class="metric-label">{label}</div>
+                <div class="metric-value">{value}</div>
+                <div class="metric-note">{note}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+def render_info_cards(items, columns=3):
+    """Render evenly spaced informational cards."""
+    if not items:
+        return
+
+    cols = st.columns(columns)
+    for idx, item in enumerate(items):
+        col = cols[idx % columns]
+        col.markdown(
+            f"""
+            <div class="glass-card info-card">
+                <div class="info-card-kicker">{item.get("kicker", "")}</div>
+                <h3>{item.get("title", "")}</h3>
+                <p>{item.get("body", "")}</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
 def render_chart(fig, key=None):
     """Render a Plotly figure with clean modebar config."""
     st.plotly_chart(
@@ -163,14 +253,14 @@ def render_chart(fig, key=None):
 
 
 def styled_dataframe(df, hide_index=True):
-    """Render a dataframe with premium styling via CSS injection."""
+    """Render a dataframe with lightweight premium styling."""
     table_css = """
     <style>
         .premium-table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 0.85rem;
             border-radius: 8px;
             overflow: hidden;
@@ -203,9 +293,9 @@ def styled_dataframe(df, hide_index=True):
 def card_css():
     """Inject CSS for chart card containers."""
     dark = is_dark()
-    card_bg = "rgba(15, 23, 42, 0.6)" if dark else "rgba(255, 255, 255, 0.7)"
-    card_border = "rgba(255,255,255,0.06)" if dark else "rgba(0,0,0,0.06)"
-    metric_bg = "rgba(15, 23, 42, 0.5)" if dark else "rgba(255, 255, 255, 0.8)"
+    card_bg = "rgba(8, 18, 32, 0.66)" if dark else "rgba(255, 255, 255, 0.78)"
+    card_border = "rgba(255,255,255,0.08)" if dark else "rgba(15,23,42,0.08)"
+    metric_bg = "rgba(8, 18, 32, 0.58)" if dark else "rgba(255, 255, 255, 0.88)"
 
     st.markdown(f"""
     <style>
@@ -214,7 +304,7 @@ def card_css():
             background: {card_bg};
             border: 1px solid {card_border};
             border-radius: 10px;
-            padding: 8px;
+            padding: 10px 10px 6px;
             margin-bottom: 12px;
         }}
         /* Metric cards */
@@ -225,7 +315,7 @@ def card_css():
             padding: 16px 18px;
         }}
         [data-testid="stMetricValue"] {{
-            font-family: {FONT_FAMILY};
+            font-family: {DISPLAY_FONT};
             font-weight: 700;
             font-size: 1.4rem !important;
         }}
@@ -260,7 +350,11 @@ def card_css():
             border-radius: 8px;
             font-family: {FONT_FAMILY};
             font-weight: 500;
-            padding: 10px 24px;
+            padding: 12px 18px;
+            min-height: 3.2rem;
+            white-space: normal;
+            line-height: 1.35;
+            text-align: center;
             transition: all 0.2s ease;
         }}
         /* Expander */

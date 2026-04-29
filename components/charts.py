@@ -12,7 +12,7 @@ from components.design import (
     CHART_MARGIN, CHART_MARGIN_COMPACT,
     TITLE_SIZE, SUBTITLE_SIZE, AXIS_LABEL_SIZE, TICK_SIZE,
     ANNOTATION_SIZE, LEGEND_SIZE,
-    base_layout, get_colors, regime_color, regime_color_alpha, is_dark,
+    base_layout, get_colors, regime_color, regime_color_alpha, phase_color, phase_color_alpha, is_dark,
 )
 
 
@@ -34,51 +34,148 @@ def price_regime_chart(dates, close, states, labels):
     n = min(len(dates), len(close), len(states) if states else len(close))
     dates = list(dates[:n])
     close = list(close[:n])
-    states = list(states[:n]) if states else []
+    states = list(states[:n]) if states else [None] * n
 
     y_min, y_max = min(close), max(close)
-    y_pad = (y_max - y_min) * 0.03 if y_max > y_min else 1
+    y_pad = (y_max - y_min) * 0.06 if y_max > y_min else 1
 
-    # Base price line FIRST so plotly infers the x-axis type from real date data
-    fig.add_trace(go.Scatter(
-        x=dates, y=close, mode="lines", name="Close",
-        line=dict(color=c["price_line"], width=2),
-        showlegend=False,
-        hovertemplate="<b>%{x}</b><br>Price: $%{y:,.2f}<extra></extra>",
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=dates,
+            y=close,
+            mode="lines",
+            name="Historical price context",
+            line=dict(color=c["price_line"], width=2),
+            opacity=0.55,
+            hovertemplate="<b>%{x}</b><br>Close: $%{y:,.2f}<extra></extra>",
+        )
+    )
 
-    # Colored background bands for regime periods (grouped consecutive)
-    unique_states = sorted(set(states))
-    legend_shown = {s: False for s in unique_states}
-
-    i = 0
-    while i < len(states):
-        s = states[i]
-        j = i
-        while j < len(states) and states[j] == s:
-            j += 1
+    unique_states = sorted({int(s) for s in states if s is not None})
+    for s in unique_states:
         label = _label(labels, s)
         color = regime_color(s)
-        fig.add_vrect(
-            x0=dates[i], x1=dates[j - 1],
-            fillcolor=regime_color_alpha(s, 0.12),
-            layer="below", line_width=0,
-        )
-        # Proxy trace just for the legend entry
-        if not legend_shown[s]:
-            fig.add_trace(go.Scatter(
-                x=[], y=[], mode="markers",
-                marker=dict(size=10, color=color, symbol="square"),
-                name=label, legendgroup=str(s),
-                hoverinfo="skip",
-                showlegend=True,
-            ))
-            legend_shown[s] = True
-        i = j
+        regime_path = [price if state == s else None for price, state in zip(close, states)]
 
+        fig.add_trace(
+            go.Scatter(
+                x=dates,
+                y=regime_path,
+                mode="lines",
+                line=dict(color=regime_color_alpha(s, 0.18), width=10),
+                hoverinfo="skip",
+                showlegend=False,
+                legendgroup=str(s),
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=dates,
+                y=regime_path,
+                mode="lines",
+                name=label,
+                legendgroup=str(s),
+                line=dict(color=color, width=4),
+                connectgaps=False,
+                hovertemplate=(
+                    f"<b>{label}</b><br>"
+                    "Date: %{x}<br>"
+                    "Close: $%{y:,.2f}<extra></extra>"
+                ),
+            )
+        )
+
+    scored_points = sum(state is not None for state in states)
+    coverage = (scored_points / len(states)) * 100 if states else 0
     layout = base_layout(
         title="Price with Regime Overlay",
-        subtitle="Close price with colored regime bands",
+        subtitle=(
+            "Muted line = full history. Coloured segments = out-of-sample assignments. "
+            f"Coverage {coverage:.1f}%."
+        ),
+        height=CHART_HEIGHT_MAIN,
+    )
+    layout["yaxis"]["title_text"] = "Price ($)"
+    layout["yaxis"]["range"] = [y_min - y_pad, y_max + y_pad]
+    layout["xaxis"]["title_text"] = ""
+    layout["hovermode"] = "x unified"
+    fig.update_layout(**layout)
+    return fig
+
+
+def price_phase_chart(dates, close, phases, phase_descriptions=None):
+    fig = go.Figure()
+    if not close or not dates:
+        return fig
+
+    c = get_colors()
+    n = min(len(dates), len(close), len(phases) if phases else len(close))
+    dates = list(dates[:n])
+    close = list(close[:n])
+    phases = list(phases[:n]) if phases else [None] * n
+
+    y_min, y_max = min(close), max(close)
+    y_pad = (y_max - y_min) * 0.06 if y_max > y_min else 1
+
+    fig.add_trace(
+        go.Scatter(
+            x=dates,
+            y=close,
+            mode="lines",
+            name="Historical price context",
+            line=dict(color=c["price_line"], width=2),
+            opacity=0.55,
+            hovertemplate="<b>%{x}</b><br>Close: $%{y:,.2f}<extra></extra>",
+        )
+    )
+
+    ordered_phases = [phase for phase in (phase_descriptions or {}).keys() if phase in phases]
+    ordered_phases.extend(
+        phase
+        for phase in sorted({phase for phase in phases if phase is not None})
+        if phase not in ordered_phases
+    )
+
+    for phase in ordered_phases:
+        phase_path = [price if value == phase else None for price, value in zip(close, phases)]
+        color = phase_color(phase)
+
+        fig.add_trace(
+            go.Scatter(
+                x=dates,
+                y=phase_path,
+                mode="lines",
+                line=dict(color=phase_color_alpha(phase, 0.18), width=10),
+                hoverinfo="skip",
+                showlegend=False,
+                legendgroup=phase,
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=dates,
+                y=phase_path,
+                mode="lines",
+                name=phase,
+                legendgroup=phase,
+                line=dict(color=color, width=4),
+                connectgaps=False,
+                hovertemplate=(
+                    f"<b>{phase}</b><br>"
+                    "Date: %{x}<br>"
+                    "Close: $%{y:,.2f}<extra></extra>"
+                ),
+            )
+        )
+
+    scored_points = sum(phase is not None for phase in phases)
+    coverage = (scored_points / len(phases)) * 100 if phases else 0
+    layout = base_layout(
+        title="Price with Market Phase Overlay",
+        subtitle=(
+            "Phases are derived from the HMM regime plus trailing drawdown and trend context. "
+            f"Coverage {coverage:.1f}%."
+        ),
         height=CHART_HEIGHT_MAIN,
     )
     layout["yaxis"]["title_text"] = "Price ($)"
@@ -178,12 +275,18 @@ def occupancy_bar(occupancy, labels):
 
 def return_dist_chart(returns, states, labels):
     fig = go.Figure()
-    arr_r, arr_s = np.array(returns), np.array(states)
+    if not returns or not states:
+        return fig
+
+    n = min(len(returns), len(states))
+    arr_r, arr_s = np.array(returns[:n]), np.array(states[:n])
 
     for i, s in enumerate(sorted(set(states))):
         label = _label(labels, s)
         color = regime_color(s)
         r = arr_r[arr_s == s]
+        if len(r) == 0:
+            continue
 
         fig.add_trace(go.Histogram(
             x=r, name=label,
@@ -194,7 +297,7 @@ def return_dist_chart(returns, states, labels):
 
     layout = base_layout(
         title="Return Distributions by Regime",
-        subtitle="Overlaid histograms showing regime-specific return profiles",
+        subtitle="Out-of-sample return distribution grouped by predicted regime",
         height=CHART_HEIGHT_HALF,
     )
     layout["barmode"] = "overlay"
@@ -243,7 +346,7 @@ def fold_timeline(folds):
     n = len(folds)
     layout = base_layout(
         title="Walk-Forward Fold Timeline",
-        subtitle=f"{n} folds — train (blue) and test (coral) windows",
+        subtitle=f"{n} folds with train windows in blue and test windows in coral",
         height=max(280, n * 40 + 100),
     )
     layout["xaxis"]["title_text"] = ""
@@ -344,7 +447,7 @@ def regime_probability_chart(dates, probabilities, labels, states, alerts=None):
 
     layout = base_layout(
         title="Regime Probabilities Over Time",
-        subtitle="Model confidence in each regime state across the observation period",
+        subtitle="Model confidence in each regime across the monitored history",
         height=CHART_HEIGHT_MAIN,
     )
     layout["yaxis"]["range"] = [0, 1.05]
@@ -413,7 +516,7 @@ def forward_projection_chart(projection_df, labels):
 
     layout = base_layout(
         title="Forward Regime Probability Projection",
-        subtitle="Projected regime evolution using the learned transition matrix",
+        subtitle="Projected regime evolution from the learned transition matrix",
         height=CHART_HEIGHT_HALF,
     )
     layout["yaxis"]["range"] = [0, 1]
@@ -459,7 +562,7 @@ def price_with_probabilities(dates, close, probabilities, labels):
 
     layout = base_layout(
         title="Price & Regime Probabilities",
-        subtitle="Close price with underlying regime probability decomposition",
+        subtitle="Close price with the full regime probability decomposition",
         height=CHART_HEIGHT_DUAL,
     )
     fig.update_layout(**layout)
